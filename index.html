@@ -8,6 +8,8 @@
     <meta name="theme-color" content="#000000">
     <title>Рейтинг - День 1</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         
@@ -89,10 +91,17 @@
         }
         
         .header-icon {
-            font-size: 48px;
-            margin-bottom: 12px;
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 12px;
             display: block;
             animation: float 3s ease-in-out infinite;
+        }
+        
+        .header-icon-container {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto;
         }
         
         @keyframes float {
@@ -412,7 +421,7 @@
     <div class="app-container">
         <div class="header">
             <div class="header-content">
-                <span class="header-icon">🏆</span>
+                <div class="header-icon-container" id="header-icon"></div>
                 <h1 class="header-title">Рейтинг</h1>
                 <div class="header-subtitle">День 1 • Марафон</div>
             </div>
@@ -569,6 +578,43 @@
         
         // Вызываем сразу при загрузке
         showDebugBlock();
+        
+        // Загрузка и отображение анимированного стикера
+        async function loadAnimatedSticker() {
+            try {
+                const response = await fetch('AnimatedSticker.tgs');
+                if (!response.ok) throw new Error('Не удалось загрузить стикер');
+                
+                const arrayBuffer = await response.arrayBuffer();
+                const uint8Array = new Uint8Array(arrayBuffer);
+                
+                // Распаковываем gzip (.tgs файлы - это gzip-сжатые JSON)
+                const decompressed = pako.inflate(uint8Array, { to: 'string' });
+                const animationData = JSON.parse(decompressed);
+                
+                // Создаем анимацию Lottie
+                const container = document.getElementById('header-icon');
+                if (container && typeof lottie !== 'undefined') {
+                    lottie.loadAnimation({
+                        container: container,
+                        renderer: 'svg',
+                        loop: true,
+                        autoplay: true,
+                        animationData: animationData
+                    });
+                }
+            } catch (e) {
+                console.warn('Не удалось загрузить анимированный стикер:', e);
+                // Fallback на эмодзи кубка
+                const container = document.getElementById('header-icon');
+                if (container) {
+                    container.innerHTML = '<span style="font-size: 48px; display: block;">🏆</span>';
+                }
+            }
+        }
+        
+        // Загружаем стикер при загрузке страницы
+        loadAnimatedSticker();
         
         // Отрисовка
         function render(data, filialMap, currentTabN, tabNMap) {
