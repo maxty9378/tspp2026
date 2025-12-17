@@ -249,8 +249,8 @@ async function load() {
                 }
                 fio = String(fio).trim();
                 
-                // Сохраняем маппинг Tab_n -> ФИО
-                const tabN = r['Tab_n'] || r['tab_n'] || '';
+                // Сохраняем маппинг табельного номера -> ФИО (ищем tab_nomer, Tab_nomer, Tab_n)
+                const tabN = r['tab_nomer'] || r['Tab_nomer'] || r['Tab_n'] || r['tab_n'] || '';
                 if (tabN && fio) {
                     tabNMap[String(tabN).trim()] = fio;
                 }

@@ -636,7 +636,8 @@
                         }
                         fio = String(fio).trim();
                         
-                        const tabN = r['Tab_n'] || r['tab_n'] || '';
+                        // Ищем табельный номер (tab_nomer, Tab_nomer, Tab_n)
+                        const tabN = r['tab_nomer'] || r['Tab_nomer'] || r['Tab_n'] || r['tab_n'] || '';
                         if (tabN && fio) {
                             tabNMap[String(tabN).trim()] = fio;
                         }
