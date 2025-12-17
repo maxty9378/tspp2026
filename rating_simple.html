@@ -37,11 +37,25 @@
         .list { background: #1a1a1a; border-radius: 12px; }
         .item { display: flex; align-items: center; padding: 12px 14px; gap: 12px; border-bottom: 1px solid #333; }
         .item:last-child { border-bottom: none; }
+        .item.current { background: rgba(0,122,255,0.1); border-left: 3px solid #007AFF; }
         .rank { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: #333; color: #888; }
+        .item.current .rank { background: #007AFF; color: #fff; }
         .name-block { flex: 1; display: flex; flex-direction: column; }
         .name { font-size: 12px; font-weight: 500; }
+        .item.current .name { font-weight: 600; color: #007AFF; }
         .filial { font-size: 10px; color: #888; margin-top: 2px; }
         .score { padding: 5px 10px; border-radius: 16px; background: rgba(0,122,255,0.2); color: #007AFF; font-weight: 700; }
+        
+        .my-place {
+            background: rgba(0,122,255,0.15);
+            border: 1px solid rgba(0,122,255,0.3);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin: 16px 0;
+            text-align: center;
+        }
+        .my-place-label { font-size: 11px; color: #888; margin-bottom: 4px; }
+        .my-place-value { font-size: 24px; font-weight: 700; color: #007AFF; }
         
         .footer { text-align: center; padding: 20px; font-size: 12px; color: #555; }
         .loading, .error { text-align: center; padding: 60px; color: #888; }
@@ -72,14 +86,53 @@ function short(fio) {
     return fio;
 }
 
+// Получение Tab_n из URL или Telegram WebApp
+function getTabN() {
+    // Из URL параметров
+    const urlParams = new URLSearchParams(window.location.search);
+    let tabN = urlParams.get('Tab_n');
+    
+    // Из Telegram WebApp initData
+    if (!tabN && window.Telegram && window.Telegram.WebApp) {
+        const tg = window.Telegram.WebApp;
+        if (tg.initData) {
+            const initData = new URLSearchParams(tg.initData);
+            tabN = initData.get('Tab_n') || initData.get('tab_n');
+        }
+    }
+    
+    return tabN ? String(tabN).trim() : null;
+}
+
 // Отрисовка
-function render(data, filialMap) {
+function render(data, filialMap, currentTabN, tabNMap) {
     if (!data.length) {
         document.getElementById('content').innerHTML = '<div class="error">😔 Нет данных</div>';
         return;
     }
     
+    // Находим место текущего пользователя
+    let currentPlace = null;
+    let currentIndex = -1;
+    if (currentTabN && tabNMap) {
+        const currentFio = tabNMap[currentTabN];
+        if (currentFio) {
+            currentIndex = data.findIndex(d => d.fio === currentFio);
+            if (currentIndex >= 0) {
+                currentPlace = currentIndex + 1;
+            }
+        }
+    }
+    
     let html = '';
+    
+    // Блок с местом текущего пользователя
+    if (currentPlace) {
+        html += `<div class="my-place">
+            <div class="my-place-label">Ваше место</div>
+            <div class="my-place-value">${currentPlace}</div>
+        </div>`;
+    }
     
     // Подиум
     if (data.length >= 3) {
@@ -88,6 +141,7 @@ function render(data, filialMap) {
         order.forEach(o => {
             const d = data[o.i];
             const filial = filialMap[d.fio] || '';
+            const isCurrent = o.i === currentIndex;
             html += `<div class="podium-item ${o.c}">
                 <div class="podium-avatar">${o.m}</div>
                 <div class="podium-name">${short(d.fio)}</div>
@@ -105,8 +159,10 @@ function render(data, filialMap) {
         html += '<div class="section-title">Остальные участники</div><div class="list">';
         rest.forEach((d, i) => {
             const filial = filialMap[d.fio] || '';
-            html += `<div class="item">
-                <div class="rank">${i + 4}</div>
+            const rank = i + 4;
+            const isCurrent = (i + 3) === currentIndex;
+            html += `<div class="item ${isCurrent ? 'current' : ''}">
+                <div class="rank">${rank}</div>
                 <div class="name-block">
                     <div class="name">${short(d.fio)}</div>
                     ${filial ? `<div class="filial">${filial}</div>` : ''}
@@ -118,7 +174,7 @@ function render(data, filialMap) {
     }
     
     document.getElementById('content').innerHTML = html;
-    document.getElementById('footer').textContent = '🔄 Обновлено: ' + new Date().toLocaleString('ru-RU');
+    document.getElementById('footer').textContent = 'Обновлено: ' + new Date().toLocaleString('ru-RU');
 }
 
 // Загрузка данных
@@ -174,7 +230,8 @@ async function load() {
             }
         }
         
-        // 5. Обработка данных рейтинга
+        // 5. Обработка данных рейтинга и создание маппинга Tab_n -> ФИО
+        const tabNMap = {}; // Tab_n -> ФИО
         const result = records
             .map(r => {
                 let fio = r['ФИО сотрудника'] || '';
@@ -186,12 +243,23 @@ async function load() {
                         }
                     }
                 }
-                return { fio: String(fio).trim(), score: parseFloat(r['Оценка'] || 0) || 0 };
+                fio = String(fio).trim();
+                
+                // Сохраняем маппинг Tab_n -> ФИО
+                const tabN = r['Tab_n'] || r['tab_n'] || '';
+                if (tabN && fio) {
+                    tabNMap[String(tabN).trim()] = fio;
+                }
+                
+                return { fio, score: parseFloat(r['Оценка'] || 0) || 0 };
             })
             .filter(x => x.fio)
             .sort((a, b) => b.score - a.score);
         
-        render(result, filialMap);
+        // Получаем Tab_n текущего пользователя
+        const currentTabN = getTabN();
+        
+        render(result, filialMap, currentTabN, tabNMap);
     } catch (e) {
         document.getElementById('content').innerHTML = '<div class="error">⚠️ ' + e.message + '</div>';
     }
