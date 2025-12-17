@@ -642,9 +642,47 @@
         
         // Загрузка и отображение анимированного стикера
         async function loadAnimatedSticker() {
+            const container = document.getElementById('header-icon');
+            if (!container) return;
+            
+            // Проверяем наличие библиотек
+            if (typeof pako === 'undefined') {
+                console.warn('Библиотека pako не загружена');
+                container.innerHTML = '<span style="font-size: 48px; display: block;">🏆</span>';
+                return;
+            }
+            
+            if (typeof lottie === 'undefined') {
+                console.warn('Библиотека lottie не загружена');
+                container.innerHTML = '<span style="font-size: 48px; display: block;">🏆</span>';
+                return;
+            }
+            
             try {
-                const response = await fetch('AnimatedSticker.tgs');
-                if (!response.ok) throw new Error('Не удалось загрузить стикер');
+                // Пробуем разные пути к файлу
+                const paths = [
+                    '/AnimatedSticker.tgs',
+                    './AnimatedSticker.tgs',
+                    'AnimatedSticker.tgs',
+                    window.location.origin + '/AnimatedSticker.tgs'
+                ];
+                
+                let response = null;
+                let lastError = null;
+                
+                for (const path of paths) {
+                    try {
+                        response = await fetch(path);
+                        if (response.ok) break;
+                    } catch (e) {
+                        lastError = e;
+                        continue;
+                    }
+                }
+                
+                if (!response || !response.ok) {
+                    throw new Error('Файл стикера не найден. Попробованы пути: ' + paths.join(', '));
+                }
                 
                 const arrayBuffer = await response.arrayBuffer();
                 const uint8Array = new Uint8Array(arrayBuffer);
@@ -654,28 +692,31 @@
                 const animationData = JSON.parse(decompressed);
                 
                 // Создаем анимацию Lottie
-                const container = document.getElementById('header-icon');
-                if (container && typeof lottie !== 'undefined') {
-                    lottie.loadAnimation({
-                        container: container,
-                        renderer: 'svg',
-                        loop: true,
-                        autoplay: true,
-                        animationData: animationData
-                    });
-                }
+                lottie.loadAnimation({
+                    container: container,
+                    renderer: 'svg',
+                    loop: true,
+                    autoplay: true,
+                    animationData: animationData
+                });
+                
+                console.log('Анимированный стикер успешно загружен');
             } catch (e) {
-                console.warn('Не удалось загрузить анимированный стикер:', e);
+                console.error('Не удалось загрузить анимированный стикер:', e);
                 // Fallback на эмодзи кубка
-                const container = document.getElementById('header-icon');
-                if (container) {
-                    container.innerHTML = '<span style="font-size: 48px; display: block;">🏆</span>';
-                }
+                container.innerHTML = '<span style="font-size: 48px; display: block;">🏆</span>';
             }
         }
         
-        // Загружаем стикер при загрузке страницы
-        loadAnimatedSticker();
+        // Загружаем стикер после загрузки DOM и библиотек
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                // Ждем немного, чтобы библиотеки точно загрузились
+                setTimeout(loadAnimatedSticker, 100);
+            });
+        } else {
+            setTimeout(loadAnimatedSticker, 100);
+        }
         
         // Отрисовка
         function render(data, filialMap, currentTabN, tabNMap, currentFullname) {
