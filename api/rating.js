@@ -58,7 +58,7 @@ function filterAndSortRecords(records) {
   return filtered;
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   try {
     // CORS headers для Telegram Mini App
     res.setHeader('Access-Control-Allow-Origin', '*');
