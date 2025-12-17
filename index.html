@@ -470,6 +470,65 @@
             return fio;
         }
         
+        // Получение ФИО (fullname) из различных источников
+        function getFullName() {
+            // 1. Из URL параметров
+            const urlParams = new URLSearchParams(window.location.search);
+            let fullname = urlParams.get('fullname') || urlParams.get('fullName') || urlParams.get('FullName');
+            
+            // 2. Из hash параметров
+            if (!fullname && window.location.hash) {
+                const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                fullname = hashParams.get('fullname') || hashParams.get('fullName') || hashParams.get('FullName');
+            }
+            
+            // 3. Из Telegram WebApp initData
+            if (!fullname && window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+                if (tg.initData) {
+                    const initData = new URLSearchParams(tg.initData);
+                    fullname = initData.get('fullname') || initData.get('fullName') || initData.get('FullName');
+                }
+                // Также проверяем в initDataUnsafe
+                if (!fullname && tg.initDataUnsafe) {
+                    fullname = tg.initDataUnsafe.fullname || tg.initDataUnsafe.fullName || tg.initDataUnsafe.FullName;
+                }
+                // Проверяем в startParam
+                if (!fullname && tg.startParam) {
+                    try {
+                        const startParams = new URLSearchParams(tg.startParam);
+                        fullname = startParams.get('fullname') || startParams.get('fullName');
+                    } catch (e) {
+                        if (tg.startParam.includes('fullname')) {
+                            const match = tg.startParam.match(/fullname[=:]([^&,\s]+)/i);
+                            if (match) fullname = match[1];
+                        }
+                    }
+                }
+            }
+            
+            // 4. Пробуем получить {{fullname}} из PuzzleBot
+            if (!fullname) {
+                try {
+                    fullname = window['{{fullname}}'] || window.fullname || window.fullName || window.FullName;
+                    if (!fullname && typeof window.eval === 'function') {
+                        try {
+                            fullname = eval('{{fullname}}');
+                        } catch(e) {}
+                    }
+                } catch(e) {}
+            }
+            
+            // 5. Из localStorage
+            if (!fullname) {
+                try {
+                    fullname = localStorage.getItem('fullname') || localStorage.getItem('fullName');
+                } catch (e) {}
+            }
+            
+            return fullname ? String(fullname).trim() : null;
+        }
+        
         // Получение табельного номера из URL, PuzzleBot входящих запросов или Telegram WebApp
         function getTabN() {
             // 1. Из URL параметров (PuzzleBot может передавать через URL)
@@ -542,15 +601,14 @@
         // Показ блока отладки сразу при загрузке
         function showDebugBlock() {
             const tabN = getTabN();
+            const fullname = getFullName();
             const debugInfo = window.debugTabN || {};
             const debugBlock = document.getElementById('debug-block');
             
             // Пробуем получить {{tab_nomer}} из различных источников
             let puzzlebotTabN = null;
             try {
-                // Проверяем window.{{tab_nomer}} или window['{{tab_nomer}}']
                 puzzlebotTabN = window['{{tab_nomer}}'] || window.tab_nomer || window.Tab_nomer;
-                // Также проверяем через eval (если PuzzleBot подставляет переменные)
                 if (!puzzlebotTabN && typeof window.eval === 'function') {
                     try {
                         puzzlebotTabN = eval('{{tab_nomer}}');
@@ -558,19 +616,22 @@
                 }
             } catch(e) {}
             
-            if (tabN || puzzlebotTabN) {
-                const finalTabN = tabN || puzzlebotTabN;
+            const finalTabN = tabN || puzzlebotTabN;
+            
+            if (finalTabN || fullname) {
                 debugBlock.innerHTML = `<div style="background: #FFD60A; color: #000; padding: 12px; border-radius: 12px; margin: 16px; text-align: center;">
-                    <div style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">✅ Найден табельный номер:</div>
-                    <div style="font-size: 20px; font-weight: 800;">${finalTabN}</div>
-                    <div style="font-size: 10px; color: #666; margin-top: 4px;">Источник: ${debugInfo.source || (puzzlebotTabN ? 'PuzzleBot {{tab_nomer}}' : 'неизвестно')}</div>
-                    ${puzzlebotTabN ? `<div style="font-size: 10px; color: #666; margin-top: 2px;">{{tab_nomer}} = ${puzzlebotTabN}</div>` : ''}
+                    ${finalTabN ? `<div style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">✅ Табельный номер:</div>
+                    <div style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">${finalTabN}</div>` : ''}
+                    ${fullname ? `<div style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">✅ ФИО (fullname):</div>
+                    <div style="font-size: 16px; font-weight: 800; margin-bottom: 8px;">${fullname}</div>` : ''}
+                    <div style="font-size: 10px; color: #666; margin-top: 4px;">Источник: ${debugInfo.source || (puzzlebotTabN ? 'PuzzleBot' : fullname ? 'fullname' : 'неизвестно')}</div>
                 </div>`;
             } else {
                 debugBlock.innerHTML = `<div style="background: rgba(255,59,48,0.15); border: 1px solid rgba(255,59,48,0.3); padding: 12px; border-radius: 12px; margin: 16px; text-align: center;">
-                    <div style="font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #FF3B30;">❌ Табельный номер НЕ найден</div>
+                    <div style="font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #FF3B30;">❌ Данные пользователя НЕ найдены</div>
                     <div style="font-size: 10px; color: #888; margin-top: 4px; word-break: break-all;">URL: ${window.location.href}</div>
-                    <div style="font-size: 10px; color: #888; margin-top: 4px;">{{tab_nomer}}: ${puzzlebotTabN || 'не определен'}</div>
+                    <div style="font-size: 10px; color: #888; margin-top: 4px;">tab_nomer: ${finalTabN || 'не определен'}</div>
+                    <div style="font-size: 10px; color: #888; margin-top: 4px;">fullname: ${fullname || 'не определен'}</div>
                     ${window.Telegram && window.Telegram.WebApp ? `<div style="font-size: 10px; color: #888; margin-top: 4px;">Telegram WebApp: ${window.Telegram.WebApp.initData ? 'есть initData' : 'нет initData'}</div>` : ''}
                 </div>`;
             }
@@ -617,7 +678,7 @@
         loadAnimatedSticker();
         
         // Отрисовка
-        function render(data, filialMap, currentTabN, tabNMap) {
+        function render(data, filialMap, currentTabN, tabNMap, currentFullname) {
             const content = document.getElementById('content');
             const footer = document.getElementById('footer');
             const updateTime = document.getElementById('updateTime');
@@ -630,7 +691,23 @@
             // Находим место текущего пользователя
             let currentPlace = null;
             let currentIndex = -1;
-            if (currentTabN && tabNMap) {
+            
+            // Сначала пробуем найти по fullname (приоритет)
+            const fullname = getFullName();
+            if (fullname) {
+                // Ищем точное совпадение или частичное (без учета регистра и пробелов)
+                const searchFio = String(fullname).trim().toLowerCase().replace(/\s+/g, ' ');
+                currentIndex = data.findIndex(d => {
+                    const dataFio = String(d.fio).trim().toLowerCase().replace(/\s+/g, ' ');
+                    return dataFio === searchFio || dataFio.includes(searchFio) || searchFio.includes(dataFio);
+                });
+                if (currentIndex >= 0) {
+                    currentPlace = currentIndex + 1;
+                }
+            }
+            
+            // Если не нашли по fullname, пробуем по табельному номеру
+            if (currentIndex < 0 && currentTabN && tabNMap) {
                 const currentFio = tabNMap[currentTabN];
                 if (currentFio) {
                     currentIndex = data.findIndex(d => d.fio === currentFio);
@@ -783,7 +860,8 @@
                     .sort((a, b) => b.score - a.score);
                 
                 const currentTabN = getTabN();
-                render(result, filialMap, currentTabN, tabNMap);
+                const currentFullname = getFullName();
+                render(result, filialMap, currentTabN, tabNMap, currentFullname);
             } catch (e) {
                 document.getElementById('content').innerHTML = '<div class="error"><div class="error-icon">⚠️</div><div>Ошибка загрузки</div><div style="margin-top: 8px; font-size: 13px; opacity: 0.7;">' + e.message + '</div></div>';
             }
