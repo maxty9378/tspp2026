@@ -86,13 +86,19 @@ function short(fio) {
     return fio;
 }
 
-// Получение табельного номера из URL или Telegram WebApp
+// Получение табельного номера из URL, PuzzleBot входящих запросов или Telegram WebApp
 function getTabN() {
-    // Из URL параметров
+    // 1. Из URL параметров (PuzzleBot может передавать через URL)
     const urlParams = new URLSearchParams(window.location.search);
-    let tabN = urlParams.get('Tab_n') || urlParams.get('tab_nomer');
+    let tabN = urlParams.get('tab_nomer') || urlParams.get('Tab_nomer') || urlParams.get('Tab_n') || urlParams.get('tab_n');
     
-    // Из Telegram WebApp initData (переменная tab_nomer)
+    // 2. Из hash параметров (PuzzleBot иногда использует hash)
+    if (!tabN && window.location.hash) {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        tabN = hashParams.get('tab_nomer') || hashParams.get('Tab_nomer') || hashParams.get('Tab_n');
+    }
+    
+    // 3. Из Telegram WebApp initData (переменная tab_nomer)
     if (!tabN && window.Telegram && window.Telegram.WebApp) {
         const tg = window.Telegram.WebApp;
         if (tg.initData) {
@@ -102,6 +108,40 @@ function getTabN() {
         // Также проверяем в initDataUnsafe
         if (!tabN && tg.initDataUnsafe) {
             tabN = tg.initDataUnsafe.tab_nomer || tg.initDataUnsafe.Tab_nomer || tg.initDataUnsafe.Tab_n;
+        }
+        // Проверяем в startParam (PuzzleBot может передавать через startParam)
+        if (!tabN && tg.startParam) {
+            try {
+                const startParams = new URLSearchParams(tg.startParam);
+                tabN = startParams.get('tab_nomer') || startParams.get('Tab_nomer');
+            } catch (e) {
+                // Если startParam не URL-encoded, пробуем как есть
+                if (tg.startParam.includes('tab_nomer')) {
+                    const match = tg.startParam.match(/tab_nomer[=:]([^&,\s]+)/i);
+                    if (match) tabN = match[1];
+                }
+            }
+        }
+    }
+    
+    // 4. Из localStorage (если был сохранен ранее)
+    if (!tabN) {
+        try {
+            tabN = localStorage.getItem('tab_nomer') || localStorage.getItem('Tab_nomer');
+        } catch (e) {}
+    }
+    
+    // Логируем для отладки
+    if (tabN) {
+        console.log('Найден табельный номер:', tabN);
+    } else {
+        console.log('Табельный номер не найден. URL:', window.location.href);
+        if (window.Telegram && window.Telegram.WebApp) {
+            console.log('Telegram WebApp:', {
+                initData: window.Telegram.WebApp.initData?.substring(0, 100),
+                initDataUnsafe: window.Telegram.WebApp.initDataUnsafe,
+                startParam: window.Telegram.WebApp.startParam
+            });
         }
     }
     
