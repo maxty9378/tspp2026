@@ -3,16 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Рейтинг - День 1 v2</title>
+    <title>Рейтинг - День 1</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/@nicepkg/tgs-player@latest/dist/tgs-player.min.js"></script>
     <style>
         :root {
+            /* Корпоративные цвета */
+            --primary: #00a380;
+            --on-surface-variant: #5e5e5e;
+            --surface-hover: #ececec;
+            --surface-disable: #787880;
+            
+            /* Telegram fallback */
             --tg-bg: var(--tg-theme-bg-color, #000000);
             --tg-text: var(--tg-theme-text-color, #FFFFFF);
-            --tg-hint: var(--tg-theme-hint-color, #8E8E93);
-            --tg-link: var(--tg-theme-link-color, #007AFF);
-            --tg-button: var(--tg-theme-button-color, #007AFF);
+            --tg-hint: var(--tg-theme-hint-color, #5e5e5e);
+            --tg-link: var(--tg-theme-link-color, #00a380);
+            --tg-button: var(--tg-theme-button-color, #00a380);
             --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #1C1C1E);
         }
         
@@ -70,8 +77,8 @@
         }
         
         .debug-block {
-            background: rgba(255, 193, 7, 0.15);
-            border: 1px solid rgba(255, 193, 7, 0.3);
+            background: rgba(0, 163, 128, 0.15);
+            border: 1px solid rgba(0, 163, 128, 0.3);
             border-radius: 12px;
             padding: 12px;
             margin: 16px 0;
@@ -92,12 +99,12 @@
         .debug-value {
             font-size: 16px;
             font-weight: 700;
-            color: #FFC107;
+            color: #00a380;
         }
         
         .my-place {
-            background: rgba(10, 132, 255, 0.15);
-            border: 1px solid rgba(10, 132, 255, 0.3);
+            background: rgba(0, 163, 128, 0.15);
+            border: 1px solid rgba(0, 163, 128, 0.3);
             border-radius: 16px;
             padding: 16px;
             margin: 16px 0;
@@ -232,7 +239,7 @@
         }
         
         .item.current {
-            background: rgba(10, 132, 255, 0.1);
+            background: rgba(0, 163, 128, 0.1);
             border-left: 3px solid var(--tg-link);
         }
         
@@ -282,7 +289,7 @@
         .score {
             padding: 6px 12px;
             border-radius: 16px;
-            background: rgba(10, 132, 255, 0.15);
+            background: rgba(0, 163, 128, 0.15);
             color: var(--tg-link);
             font-size: 14px;
             font-weight: 700;
@@ -359,9 +366,9 @@ if (tg) {
     // Применяем тему Telegram
     document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#000000');
     document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#FFFFFF');
-    document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#8E8E93');
-    document.documentElement.style.setProperty('--tg-theme-link-color', tg.themeParams.link_color || '#007AFF');
-    document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#007AFF');
+    document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#5e5e5e');
+    document.documentElement.style.setProperty('--tg-theme-link-color', tg.themeParams.link_color || '#00a380');
+    document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#00a380');
     document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#1C1C1E');
 }
 
