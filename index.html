@@ -548,6 +548,14 @@
             
             let html = '';
             
+            // Блок с табельным номером для теста (всегда показываем, если найден)
+            if (currentTabN) {
+                html += `<div style="background: rgba(255, 193, 7, 0.15); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 16px; padding: 16px; margin: 16px 0; text-align: center;">
+                    <div style="font-size: 13px; color: var(--ios-text-secondary); margin-bottom: 8px;">Найден табельный номер (тест):</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #FFC107;">${currentTabN}</div>
+                </div>`;
+            }
+            
             // Блок с местом текущего пользователя
             if (currentPlace) {
                 html += `<div class="my-place" style="background: rgba(10, 132, 255, 0.15); border: 1px solid rgba(10, 132, 255, 0.3); border-radius: 16px; padding: 16px; margin: 16px 0; text-align: center;">

@@ -57,6 +57,18 @@
         .my-place-label { font-size: 11px; color: #888; margin-bottom: 4px; }
         .my-place-value { font-size: 24px; font-weight: 700; color: #007AFF; }
         
+        .debug-info {
+            background: rgba(255,193,7,0.15);
+            border: 1px solid rgba(255,193,7,0.3);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin: 16px 0;
+            text-align: center;
+            font-size: 12px;
+        }
+        .debug-label { color: #888; margin-bottom: 4px; }
+        .debug-value { color: #FFC107; font-weight: 600; font-size: 16px; }
+        
         .footer { text-align: center; padding: 20px; font-size: 12px; color: #555; }
         .loading, .error { text-align: center; padding: 60px; color: #888; }
     </style>
@@ -169,6 +181,14 @@ function render(data, filialMap, currentTabN, tabNMap) {
     }
     
     let html = '';
+    
+    // Блок с табельным номером для теста (всегда показываем, если найден)
+    if (currentTabN) {
+        html += `<div class="debug-info">
+            <div class="debug-label">Найден табельный номер (тест):</div>
+            <div class="debug-value">${currentTabN}</div>
+        </div>`;
+    }
     
     // Блок с местом текущего пользователя
     if (currentPlace) {
