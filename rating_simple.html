@@ -24,7 +24,8 @@
         .gold .podium-avatar { width: 72px; height: 72px; font-size: 32px; background: linear-gradient(135deg, #FFD700, #FFA500); }
         .silver .podium-avatar { background: linear-gradient(135deg, #C0C0C0, #808080); }
         .bronze .podium-avatar { background: linear-gradient(135deg, #CD7F32, #8B4513); }
-        .podium-name { font-size: 12px; font-weight: 600; text-align: center; margin-bottom: 4px; }
+        .podium-name { font-size: 12px; font-weight: 600; text-align: center; margin-bottom: 2px; }
+        .podium-filial { font-size: 10px; color: #888; text-align: center; margin-bottom: 4px; }
         .podium-score { font-size: 14px; font-weight: 700; padding: 4px 10px; border-radius: 12px; background: #222; }
         .gold .podium-score { background: rgba(255,215,0,0.2); color: #FFD700; }
         .podium-pedestal { width: 100%; margin-top: 10px; border-radius: 8px 8px 0 0; background: #1a1a1a; }
@@ -37,7 +38,9 @@
         .item { display: flex; align-items: center; padding: 12px 14px; gap: 12px; border-bottom: 1px solid #333; }
         .item:last-child { border-bottom: none; }
         .rank { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: #333; color: #888; }
-        .name { flex: 1; font-size: 12px; font-weight: 500; }
+        .name-block { flex: 1; display: flex; flex-direction: column; }
+        .name { font-size: 12px; font-weight: 500; }
+        .filial { font-size: 10px; color: #888; margin-top: 2px; }
         .score { padding: 5px 10px; border-radius: 16px; background: rgba(0,122,255,0.2); color: #007AFF; font-weight: 700; }
         
         .footer { text-align: center; padding: 20px; font-size: 12px; color: #555; }
@@ -70,7 +73,7 @@ function short(fio) {
 }
 
 // Отрисовка
-function render(data) {
+function render(data, filialMap) {
     if (!data.length) {
         document.getElementById('content').innerHTML = '<div class="error">😔 Нет данных</div>';
         return;
@@ -84,9 +87,11 @@ function render(data) {
         html += '<div class="podium">';
         order.forEach(o => {
             const d = data[o.i];
+            const filial = filialMap[d.fio] || '';
             html += `<div class="podium-item ${o.c}">
                 <div class="podium-avatar">${o.m}</div>
                 <div class="podium-name">${short(d.fio)}</div>
+                ${filial ? `<div class="podium-filial">${filial}</div>` : ''}
                 <div class="podium-score">${d.score} ⭐</div>
                 <div class="podium-pedestal"></div>
             </div>`;
@@ -99,9 +104,13 @@ function render(data) {
     if (rest.length) {
         html += '<div class="section-title">Остальные участники</div><div class="list">';
         rest.forEach((d, i) => {
+            const filial = filialMap[d.fio] || '';
             html += `<div class="item">
                 <div class="rank">${i + 4}</div>
-                <div class="name">${short(d.fio)}</div>
+                <div class="name-block">
+                    <div class="name">${short(d.fio)}</div>
+                    ${filial ? `<div class="filial">${filial}</div>` : ''}
+                </div>
                 <div class="score">${d.score}</div>
             </div>`;
         });
@@ -126,14 +135,46 @@ async function load() {
         // 2. Таблицы
         const tabRes = await fetch(NOCODB_URL + '/api/v1/db/meta/projects/' + projectId + '/tables', { headers });
         const tables = (await tabRes.json()).list || [];
-        let tableId = tables.find(t => t.title === TABLE_NAME)?.id;
-        if (!tableId) throw new Error('Таблица не найдена');
         
-        // 3. Данные
+        // 3. Данные из таблицы "День 1"
+        let tableId = tables.find(t => t.title === TABLE_NAME)?.id;
+        if (!tableId) throw new Error('Таблица "День 1" не найдена');
+        
         const dataRes = await fetch(NOCODB_URL + '/api/v1/db/data/noco/' + projectId + '/' + tableId, { headers });
         const records = (await dataRes.json()).list || [];
         
-        // 4. Обработка
+        // 4. Данные из таблицы "Сотрудники" для получения филиалов
+        let employeesTableId = tables.find(t => t.title === 'Сотрудники')?.id;
+        let filialMap = {};
+        
+        if (employeesTableId) {
+            try {
+                const empRes = await fetch(NOCODB_URL + '/api/v1/db/data/noco/' + projectId + '/' + employeesTableId, { headers });
+                const employees = (await empRes.json()).list || [];
+                
+                employees.forEach(emp => {
+                    let fio = emp['ФИО сотрудника'] || emp['ФИО'] || '';
+                    if (!fio) {
+                        for (const k of Object.keys(emp)) {
+                            if (k.toLowerCase().includes('фио') && !k.toLowerCase().includes('тренер')) {
+                                fio = emp[k] || '';
+                                if (fio) break;
+                            }
+                        }
+                    }
+                    if (fio) {
+                        const filial = emp['Филиал сотрудника'] || emp['Филиал'] || '';
+                        if (filial) {
+                            filialMap[String(fio).trim()] = String(filial).trim();
+                        }
+                    }
+                });
+            } catch (e) {
+                console.warn('Не удалось загрузить филиалы:', e);
+            }
+        }
+        
+        // 5. Обработка данных рейтинга
         const result = records
             .map(r => {
                 let fio = r['ФИО сотрудника'] || '';
@@ -150,7 +191,7 @@ async function load() {
             .filter(x => x.fio)
             .sort((a, b) => b.score - a.score);
         
-        render(result);
+        render(result, filialMap);
     } catch (e) {
         document.getElementById('content').innerHTML = '<div class="error">⚠️ ' + e.message + '</div>';
     }
