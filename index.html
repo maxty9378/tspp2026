@@ -3,41 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#000000">
     <title>Рейтинг - День 1</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+    <script src="https://unpkg.com/@nicepkg/tgs-player@latest/dist/tgs-player.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        
         :root {
-            --tg-theme-bg-color: #000000;
-            --tg-theme-text-color: #FFFFFF;
-            --tg-theme-hint-color: #8E8E93;
-            --tg-theme-link-color: #007AFF;
-            --tg-theme-button-color: #007AFF;
-            --tg-theme-button-text-color: #FFFFFF;
-            --tg-theme-secondary-bg-color: #1C1C1E;
-            
-            --ios-bg-primary: #000000;
-            --ios-bg-secondary: #1C1C1E;
-            --ios-bg-tertiary: #2C2C2E;
-            --ios-bg-elevated: #1C1C1E;
-            --ios-separator: rgba(84, 84, 88, 0.65);
-            --ios-text-primary: #FFFFFF;
-            --ios-text-secondary: #8E8E93;
-            --ios-text-tertiary: #48484A;
-            --ios-accent: #0A84FF;
-            --ios-green: #30D158;
-            --ios-gold: #FFD60A;
-            --ios-silver: #98989D;
-            --ios-bronze: #AC8E68;
-            
-            --safe-area-inset-top: env(safe-area-inset-top, 0px);
-            --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+            --tg-bg: var(--tg-theme-bg-color, #000000);
+            --tg-text: var(--tg-theme-text-color, #FFFFFF);
+            --tg-hint: var(--tg-theme-hint-color, #8E8E93);
+            --tg-link: var(--tg-theme-link-color, #007AFF);
+            --tg-button: var(--tg-theme-button-color, #007AFF);
+            --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #1C1C1E);
         }
         
         * {
@@ -45,118 +21,292 @@
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-        
-        html, body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
-            background: var(--ios-bg-primary);
-            color: var(--ios-text-primary);
-            min-height: 100vh;
-            min-height: 100dvh;
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
         
         body {
-            padding-top: var(--safe-area-inset-top);
-            padding-bottom: var(--safe-area-inset-bottom);
-            background: linear-gradient(180deg, #0A0A0A 0%, #000000 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-bg);
+            color: var(--tg-text);
+            min-height: 100vh;
+            overflow-x: hidden;
         }
         
-        .app-container {
-            max-width: 100%;
-            min-height: 100vh;
-            min-height: 100dvh;
-            display: flex;
-            flex-direction: column;
+        .container {
+            padding: 16px;
+            padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
         }
         
         .header {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            padding: 20px 16px 24px;
-            background: rgba(0, 0, 0, 0.72);
-            backdrop-filter: saturate(180%) blur(20px);
-            -webkit-backdrop-filter: saturate(180%) blur(20px);
-            border-bottom: 0.5px solid var(--ios-separator);
+            text-align: center;
+            padding: 20px 0;
         }
         
-        .header-content {
+        .sticker-container {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 12px;
+        }
+        
+        tgs-player {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .fallback-icon {
+            font-size: 64px;
+            display: block;
             text-align: center;
         }
         
-        .header-icon {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 12px;
-            display: block;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        .header-icon-container {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-6px); }
-        }
-        
-        .header-title {
+        .title {
             font-size: 28px;
             font-weight: 700;
-            color: var(--ios-text-primary);
-            letter-spacing: -0.5px;
             margin-bottom: 4px;
         }
         
-        .header-subtitle {
+        .subtitle {
             font-size: 15px;
-            font-weight: 500;
-            color: var(--ios-text-secondary);
+            color: var(--tg-hint);
+        }
+        
+        .debug-block {
+            background: rgba(255, 193, 7, 0.15);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 12px;
+            padding: 12px;
+            margin: 16px 0;
+            text-align: center;
+            font-size: 12px;
+        }
+        
+        .debug-block.error {
+            background: rgba(255, 59, 48, 0.15);
+            border-color: rgba(255, 59, 48, 0.3);
+        }
+        
+        .debug-label {
+            color: var(--tg-hint);
+            margin-bottom: 4px;
+        }
+        
+        .debug-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #FFC107;
+        }
+        
+        .my-place {
+            background: rgba(10, 132, 255, 0.15);
+            border: 1px solid rgba(10, 132, 255, 0.3);
+            border-radius: 16px;
+            padding: 16px;
+            margin: 16px 0;
+            text-align: center;
+        }
+        
+        .my-place-label {
+            font-size: 13px;
+            color: var(--tg-hint);
+            margin-bottom: 8px;
+        }
+        
+        .my-place-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--tg-link);
+        }
+        
+        .podium {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 8px;
+            margin: 24px 0;
+            padding: 0 8px;
+        }
+        
+        .podium-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            max-width: 110px;
+        }
+        
+        .podium-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            font-size: 24px;
+            margin-bottom: 8px;
         }
         
-        .header-subtitle::before {
-            content: '';
-            width: 8px;
-            height: 8px;
-            background: var(--ios-green);
-            border-radius: 50%;
-            animation: pulse 2s ease-in-out infinite;
+        .podium-item.gold .podium-avatar {
+            width: 68px;
+            height: 68px;
+            font-size: 28px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
         }
         
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.8); }
+        .podium-item.silver .podium-avatar {
+            background: linear-gradient(135deg, #C0C0C0, #A0A0A0);
+            box-shadow: 0 4px 15px rgba(192, 192, 192, 0.3);
         }
         
-        .content {
+        .podium-item.bronze .podium-avatar {
+            background: linear-gradient(135deg, #CD7F32, #8B4513);
+            box-shadow: 0 4px 15px rgba(205, 127, 50, 0.3);
+        }
+        
+        .podium-name {
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 2px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .podium-filial {
+            font-size: 10px;
+            color: var(--tg-hint);
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        
+        .podium-score {
+            font-size: 14px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: var(--tg-secondary-bg);
+        }
+        
+        .podium-item.gold .podium-score {
+            background: rgba(255, 215, 0, 0.2);
+            color: #FFD700;
+        }
+        
+        .podium-pedestal {
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 8px 8px 0 0;
+            background: var(--tg-secondary-bg);
+        }
+        
+        .podium-item.gold .podium-pedestal { height: 60px; }
+        .podium-item.silver .podium-pedestal { height: 45px; }
+        .podium-item.bronze .podium-pedestal { height: 30px; }
+        
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--tg-hint);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 16px 0 8px;
+        }
+        
+        .list {
+            background: var(--tg-secondary-bg);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .item {
+            display: flex;
+            align-items: center;
+            padding: 12px 14px;
+            gap: 12px;
+            border-bottom: 0.5px solid rgba(84, 84, 88, 0.4);
+        }
+        
+        .item:last-child {
+            border-bottom: none;
+        }
+        
+        .item.current {
+            background: rgba(10, 132, 255, 0.1);
+            border-left: 3px solid var(--tg-link);
+        }
+        
+        .rank {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            background: rgba(84, 84, 88, 0.3);
+            color: var(--tg-hint);
+            flex-shrink: 0;
+        }
+        
+        .item.current .rank {
+            background: var(--tg-link);
+            color: #fff;
+        }
+        
+        .info {
             flex: 1;
-            padding: 16px;
+            min-width: 0;
+        }
+        
+        .name {
+            font-size: 15px;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .item.current .name {
+            font-weight: 600;
+            color: var(--tg-link);
+        }
+        
+        .filial {
+            font-size: 12px;
+            color: var(--tg-hint);
+            margin-top: 2px;
+        }
+        
+        .score {
+            padding: 6px 12px;
+            border-radius: 16px;
+            background: rgba(10, 132, 255, 0.15);
+            color: var(--tg-link);
+            font-size: 14px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: var(--tg-hint);
         }
         
         .loading {
             text-align: center;
             padding: 60px 20px;
-            color: var(--ios-text-secondary);
+            color: var(--tg-hint);
         }
         
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--ios-bg-tertiary);
-            border-top-color: var(--ios-accent);
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--tg-secondary-bg);
+            border-top-color: var(--tg-link);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 16px;
@@ -168,778 +318,414 @@
         
         .error {
             text-align: center;
-            padding: 60px 20px;
-            color: var(--ios-text-secondary);
+            padding: 40px 20px;
+            color: var(--tg-hint);
         }
         
         .error-icon {
-            font-size: 64px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-        
-        .podium {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            gap: 8px;
-            margin-bottom: 24px;
-            padding: 20px 8px 0;
-        }
-        
-        .podium-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-            max-width: 120px;
-        }
-        
-        .podium-avatar {
-            width: 64px;
-            height: 64px;
-            border-radius: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            margin-bottom: 8px;
-            position: relative;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-        }
-        
-        .podium-avatar::after {
-            content: '';
-            position: absolute;
-            inset: -3px;
-            border-radius: 35px;
-            padding: 3px;
-            background: linear-gradient(135deg, var(--glow-color) 0%, transparent 60%);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-        }
-        
-        .podium-1 .podium-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 40px;
-            font-size: 36px;
-            background: linear-gradient(135deg, #FFD60A 0%, #FF9F0A 100%);
-            --glow-color: #FFD60A;
-            animation: glow-gold 2s ease-in-out infinite alternate;
-        }
-        
-        @keyframes glow-gold {
-            from { box-shadow: 0 8px 24px rgba(255, 214, 10, 0.3); }
-            to { box-shadow: 0 8px 32px rgba(255, 214, 10, 0.5); }
-        }
-        
-        .podium-2 .podium-avatar {
-            background: linear-gradient(135deg, #98989D 0%, #636366 100%);
-            --glow-color: #98989D;
-        }
-        
-        .podium-3 .podium-avatar {
-            background: linear-gradient(135deg, #AC8E68 0%, #8B7355 100%);
-            --glow-color: #AC8E68;
-        }
-        
-        .podium-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--ios-text-primary);
-            text-align: center;
-            margin-bottom: 4px;
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        
-        .podium-score {
-            font-size: 15px;
-            font-weight: 700;
-            padding: 4px 12px;
-            border-radius: 12px;
-            background: var(--ios-bg-tertiary);
-            color: var(--ios-accent);
-        }
-        
-        .podium-1 .podium-score {
-            background: rgba(255, 214, 10, 0.15);
-            color: var(--ios-gold);
-        }
-        
-        .podium-pedestal {
-            width: 100%;
-            margin-top: 12px;
-            border-radius: 12px 12px 0 0;
-            background: var(--ios-bg-secondary);
-        }
-        
-        .podium-1 .podium-pedestal { height: 80px; background: linear-gradient(180deg, #2C2C2E 0%, #1C1C1E 100%); }
-        .podium-2 .podium-pedestal { height: 60px; }
-        .podium-3 .podium-pedestal { height: 40px; }
-        
-        .rating-section {
-            margin-top: 8px;
-        }
-        
-        .section-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--ios-text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 0 16px;
-            margin-bottom: 8px;
-        }
-        
-        .rating-list {
-            background: var(--ios-bg-elevated);
-            border-radius: 16px;
-            overflow: hidden;
-        }
-        
-        .rating-item {
-            display: flex;
-            align-items: center;
-            padding: 14px 16px;
-            gap: 12px;
-            border-bottom: 0.5px solid var(--ios-separator);
-            transition: background-color 0.15s ease;
-            animation: slideIn 0.4s ease-out backwards;
-        }
-        
-        .rating-item:last-child {
-            border-bottom: none;
-        }
-        
-        .rating-item:active {
-            background: var(--ios-bg-tertiary);
-        }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
-        .rank-number {
-            width: 32px;
-            height: 32px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 15px;
-            font-weight: 600;
-            background: var(--ios-bg-tertiary);
-            color: var(--ios-text-secondary);
-            flex-shrink: 0;
-        }
-        
-        .user-info {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        .user-name {
-            font-size: 17px;
-            font-weight: 500;
-            color: var(--ios-text-primary);
-            line-height: 1.3;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        
-        .score-pill {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            background: rgba(10, 132, 255, 0.15);
-            flex-shrink: 0;
-        }
-        
-        .score-value {
-            font-size: 17px;
-            font-weight: 700;
-            color: var(--ios-accent);
-        }
-        
-        .score-label {
-            font-size: 13px;
-            color: var(--ios-text-secondary);
-        }
-        
-        .score-high .score-pill {
-            background: rgba(48, 209, 88, 0.15);
-        }
-        .score-high .score-value {
-            color: var(--ios-green);
-        }
-        
-        .score-medium .score-pill {
-            background: rgba(10, 132, 255, 0.15);
-        }
-        
-        .score-low .score-pill {
-            background: var(--ios-bg-tertiary);
-        }
-        .score-low .score-value {
-            color: var(--ios-text-secondary);
-        }
-        
-        .footer {
-            padding: 24px 16px;
-            text-align: center;
-        }
-        
-        .update-time {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            background: var(--ios-bg-secondary);
-            border-radius: 20px;
-            font-size: 13px;
-            color: var(--ios-text-secondary);
+            font-size: 48px;
+            margin-bottom: 12px;
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
+    <div class="container">
         <div class="header">
-            <div class="header-content">
-                <div class="header-icon-container" id="header-icon"></div>
-                <h1 class="header-title">Рейтинг</h1>
-                <div class="header-subtitle">День 1 • Марафон</div>
+            <div class="sticker-container" id="sticker">
+                <span class="fallback-icon">🏆</span>
             </div>
+            <h1 class="title">Рейтинг</h1>
+            <div class="subtitle">День 1 • Марафон</div>
         </div>
         
-        <div id="debug-block"></div>
-        <div class="content" id="content">
+        <div id="debug"></div>
+        <div id="content">
             <div class="loading">
-                <div class="loading-spinner"></div>
-                <div>Загрузка данных...</div>
+                <div class="spinner"></div>
+                <div>Загрузка...</div>
             </div>
         </div>
-        
-        <div class="footer" id="footer" style="display: none;">
-            <div class="update-time" id="updateTime"></div>
-        </div>
+        <div class="footer" id="footer"></div>
     </div>
+
+<script>
+// === Telegram WebApp ===
+const tg = window.Telegram?.WebApp;
+if (tg) {
+    tg.ready();
+    tg.expand();
+    tg.enableClosingConfirmation();
     
-    <script>
-        // Telegram WebApp integration
-        if (window.Telegram && window.Telegram.WebApp) {
-            const tg = window.Telegram.WebApp;
-            tg.ready();
-            tg.expand();
-            
-            document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#000000');
-            document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#FFFFFF');
-            document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#8E8E93');
-            document.documentElement.style.setProperty('--tg-theme-link-color', tg.themeParams.link_color || '#007AFF');
-            document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#007AFF');
-            document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#1C1C1E');
+    // Применяем тему Telegram
+    document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#000000');
+    document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#FFFFFF');
+    document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#8E8E93');
+    document.documentElement.style.setProperty('--tg-theme-link-color', tg.themeParams.link_color || '#007AFF');
+    document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#007AFF');
+    document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#1C1C1E');
+}
+
+// === Конфигурация ===
+const NOCODB_URL = 'https://nocodb.puzzlebot.top';
+const API_TOKEN = 'avKy8Ov_rNMIRMf-hgneulQKWsrXMhqmdqfc6uR1';
+const TABLE_NAME = 'День 1';
+
+// === Утилиты ===
+function shortName(fio) {
+    const parts = String(fio).trim().split(/\s+/).filter(x => x);
+    if (parts.length >= 2) {
+        return parts[1] + ' ' + parts[0][0].toUpperCase() + '.';
+    }
+    return fio;
+}
+
+// === Получение fullname из Telegram WebApp или URL ===
+function getFullName() {
+    let fullname = null;
+    
+    // 1. Из URL параметров
+    const urlParams = new URLSearchParams(window.location.search);
+    fullname = urlParams.get('fullname') || urlParams.get('fullName');
+    
+    // 2. Из hash параметров
+    if (!fullname && window.location.hash) {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        fullname = hashParams.get('fullname') || hashParams.get('fullName');
+    }
+    
+    // 3. Из Telegram WebApp
+    if (!fullname && tg) {
+        // Проверяем initDataUnsafe.user
+        if (tg.initDataUnsafe?.user) {
+            const user = tg.initDataUnsafe.user;
+            if (user.last_name && user.first_name) {
+                fullname = user.last_name + ' ' + user.first_name;
+            } else if (user.first_name) {
+                fullname = user.first_name;
+            }
         }
         
-        // === НАСТРОЙКИ ===
-        const NOCODB_URL = 'https://nocodb.puzzlebot.top';
-        const API_TOKEN = 'avKy8Ov_rNMIRMf-hgneulQKWsrXMhqmdqfc6uR1';
-        const TABLE_NAME = 'День 1';
-        
-        // Короткое имя в формате "Имя Ф."
-        function short(fio) {
-            const p = fio.split(' ').filter(x => x);
-            if (p.length >= 2) {
-                // p[0] = Фамилия, p[1] = Имя
-                return p[1] + ' ' + p[0][0].toUpperCase() + '.';
-            }
-            return fio;
+        // Проверяем кастомные поля
+        if (!fullname && tg.initDataUnsafe) {
+            fullname = tg.initDataUnsafe.fullname || tg.initDataUnsafe.fullName || tg.initDataUnsafe.FullName;
         }
         
-        // Получение ФИО (fullname) из различных источников
-        function getFullName() {
-            // 1. Из URL параметров
-            const urlParams = new URLSearchParams(window.location.search);
-            let fullname = urlParams.get('fullname') || urlParams.get('fullName') || urlParams.get('FullName');
-            
-            // 2. Из hash параметров
-            if (!fullname && window.location.hash) {
-                const hashParams = new URLSearchParams(window.location.hash.substring(1));
-                fullname = hashParams.get('fullname') || hashParams.get('fullName') || hashParams.get('FullName');
-            }
-            
-            // 3. Из Telegram WebApp initData
-            if (!fullname && window.Telegram && window.Telegram.WebApp) {
-                const tg = window.Telegram.WebApp;
-                if (tg.initData) {
-                    const initData = new URLSearchParams(tg.initData);
-                    fullname = initData.get('fullname') || initData.get('fullName') || initData.get('FullName');
-                }
-                // Также проверяем в initDataUnsafe
-                if (!fullname && tg.initDataUnsafe) {
-                    fullname = tg.initDataUnsafe.fullname || tg.initDataUnsafe.fullName || tg.initDataUnsafe.FullName;
-                }
-                // Проверяем в startParam
-                if (!fullname && tg.startParam) {
-                    try {
-                        const startParams = new URLSearchParams(tg.startParam);
-                        fullname = startParams.get('fullname') || startParams.get('fullName');
-                    } catch (e) {
-                        if (tg.startParam.includes('fullname')) {
-                            const match = tg.startParam.match(/fullname[=:]([^&,\s]+)/i);
-                            if (match) fullname = match[1];
-                        }
-                    }
-                }
-            }
-            
-            // 4. Пробуем получить {{fullname}} из PuzzleBot
-            if (!fullname) {
-                try {
-                    fullname = window['{{fullname}}'] || window.fullname || window.fullName || window.FullName;
-                    if (!fullname && typeof window.eval === 'function') {
-                        try {
-                            fullname = eval('{{fullname}}');
-                        } catch(e) {}
-                    }
-                } catch(e) {}
-            }
-            
-            // 5. Из localStorage
-            if (!fullname) {
-                try {
-                    fullname = localStorage.getItem('fullname') || localStorage.getItem('fullName');
-                } catch (e) {}
-            }
-            
-            return fullname ? String(fullname).trim() : null;
+        // Проверяем initData
+        if (!fullname && tg.initData) {
+            const initData = new URLSearchParams(tg.initData);
+            fullname = initData.get('fullname') || initData.get('fullName');
         }
         
-        // Получение табельного номера из URL, PuzzleBot входящих запросов или Telegram WebApp
-        function getTabN() {
-            // 1. Из URL параметров (PuzzleBot может передавать через URL)
-            const urlParams = new URLSearchParams(window.location.search);
-            let tabN = urlParams.get('tab_nomer') || urlParams.get('Tab_nomer') || urlParams.get('Tab_n') || urlParams.get('tab_n');
-            
-            // 2. Из hash параметров (PuzzleBot иногда использует hash)
-            if (!tabN && window.location.hash) {
-                const hashParams = new URLSearchParams(window.location.hash.substring(1));
-                tabN = hashParams.get('tab_nomer') || hashParams.get('Tab_nomer') || hashParams.get('Tab_n');
+        // Проверяем startParam
+        if (!fullname && tg.startParam) {
+            if (tg.startParam.includes('fullname=')) {
+                const match = tg.startParam.match(/fullname=([^&]+)/i);
+                if (match) fullname = decodeURIComponent(match[1]);
             }
-            
-            // 3. Из Telegram WebApp initData (переменная tab_nomer)
-            if (!tabN && window.Telegram && window.Telegram.WebApp) {
-                const tg = window.Telegram.WebApp;
-                if (tg.initData) {
-                    const initData = new URLSearchParams(tg.initData);
-                    tabN = initData.get('tab_nomer') || initData.get('Tab_nomer') || initData.get('Tab_n') || initData.get('tab_n');
-                }
-                // Также проверяем в initDataUnsafe
-                if (!tabN && tg.initDataUnsafe) {
-                    tabN = tg.initDataUnsafe.tab_nomer || tg.initDataUnsafe.Tab_nomer || tg.initDataUnsafe.Tab_n;
-                }
-                // Проверяем в startParam (PuzzleBot может передавать через startParam)
-                if (!tabN && tg.startParam) {
-                    try {
-                        const startParams = new URLSearchParams(tg.startParam);
-                        tabN = startParams.get('tab_nomer') || startParams.get('Tab_nomer');
-                    } catch (e) {
-                        // Если startParam не URL-encoded, пробуем как есть
-                        if (tg.startParam.includes('tab_nomer')) {
-                            const match = tg.startParam.match(/tab_nomer[=:]([^&,\s]+)/i);
-                            if (match) tabN = match[1];
-                        }
-                    }
-                }
-            }
-            
-            // 4. Из localStorage (если был сохранен ранее)
-            if (!tabN) {
-                try {
-                    tabN = localStorage.getItem('tab_nomer') || localStorage.getItem('Tab_nomer');
-                } catch (e) {}
-            }
-            
-            // Сохраняем информацию об источнике для отображения на странице
-            let source = null;
-            if (tabN) {
-                if (urlParams.get('tab_nomer') || urlParams.get('Tab_nomer')) source = 'URL параметры';
-                else if (window.location.hash && (hashParams.get('tab_nomer') || hashParams.get('Tab_nomer'))) source = 'Hash параметры';
-                else if (window.Telegram && window.Telegram.WebApp) {
-                    const tg = window.Telegram.WebApp;
-                    if (tg.initData && (new URLSearchParams(tg.initData).get('tab_nomer') || new URLSearchParams(tg.initData).get('Tab_nomer'))) {
-                        source = 'Telegram initData';
-                    } else if (tg.initDataUnsafe && (tg.initDataUnsafe.tab_nomer || tg.initDataUnsafe.Tab_nomer)) {
-                        source = 'Telegram initDataUnsafe';
-                    } else if (tg.startParam && tg.startParam.includes('tab_nomer')) {
-                        source = 'Telegram startParam';
-                    }
-                }
-                if (!source && localStorage.getItem('tab_nomer')) source = 'localStorage';
-            }
-            
-            // Сохраняем для отображения
-            window.debugTabN = { value: tabN, source: source, url: window.location.href };
-            
-            return tabN ? String(tabN).trim() : null;
         }
+    }
+    
+    // 4. Пробуем PuzzleBot переменные
+    if (!fullname) {
+        try {
+            fullname = window.fullname || window.fullName;
+        } catch (e) {}
+    }
+    
+    return fullname ? String(fullname).trim() : null;
+}
+
+// === Получение tab_nomer ===
+function getTabNomer() {
+    let tabN = null;
+    
+    // 1. Из URL параметров
+    const urlParams = new URLSearchParams(window.location.search);
+    tabN = urlParams.get('tab_nomer') || urlParams.get('Tab_nomer') || urlParams.get('tab_n');
+    
+    // 2. Из hash
+    if (!tabN && window.location.hash) {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        tabN = hashParams.get('tab_nomer') || hashParams.get('Tab_nomer');
+    }
+    
+    // 3. Из Telegram WebApp
+    if (!tabN && tg) {
+        if (tg.initDataUnsafe) {
+            tabN = tg.initDataUnsafe.tab_nomer || tg.initDataUnsafe.Tab_nomer;
+        }
+        if (!tabN && tg.initData) {
+            const initData = new URLSearchParams(tg.initData);
+            tabN = initData.get('tab_nomer') || initData.get('Tab_nomer');
+        }
+        if (!tabN && tg.startParam) {
+            if (tg.startParam.includes('tab_nomer=')) {
+                const match = tg.startParam.match(/tab_nomer=([^&]+)/i);
+                if (match) tabN = decodeURIComponent(match[1]);
+            }
+        }
+    }
+    
+    // 4. PuzzleBot переменные
+    if (!tabN) {
+        try {
+            tabN = window.tab_nomer || window.Tab_nomer;
+        } catch (e) {}
+    }
+    
+    return tabN ? String(tabN).trim() : null;
+}
+
+// === Показать блок отладки ===
+function showDebug() {
+    const fullname = getFullName();
+    const tabN = getTabNomer();
+    const debugEl = document.getElementById('debug');
+    
+    let html = '';
+    
+    if (fullname || tabN) {
+        html = `<div class="debug-block">`;
+        if (fullname) {
+            html += `<div class="debug-label">✅ ФИО:</div>
+                     <div class="debug-value">${fullname}</div>`;
+        }
+        if (tabN) {
+            html += `<div class="debug-label" style="margin-top: 8px;">✅ Табельный номер:</div>
+                     <div class="debug-value">${tabN}</div>`;
+        }
+        // Показываем источник данных
+        let source = 'неизвестно';
+        if (tg?.initDataUnsafe?.user) source = 'Telegram User';
+        else if (tg?.initDataUnsafe?.fullname) source = 'Telegram initDataUnsafe';
+        else if (tg?.startParam) source = 'Telegram startParam';
+        else if (window.location.search) source = 'URL параметры';
+        html += `<div style="font-size: 10px; color: var(--tg-hint); margin-top: 8px;">Источник: ${source}</div>`;
+        html += `</div>`;
+    } else {
+        html = `<div class="debug-block error">
+            <div class="debug-label">❌ Данные пользователя не найдены</div>
+            <div style="font-size: 10px; color: var(--tg-hint); margin-top: 8px; word-break: break-all;">
+                URL: ${window.location.href}<br>
+                Telegram: ${tg ? 'подключен' : 'не подключен'}<br>
+                ${tg?.initData ? 'initData: есть' : 'initData: нет'}
+            </div>
+        </div>`;
+    }
+    
+    debugEl.innerHTML = html;
+}
+
+// === Загрузка стикера ===
+async function loadSticker() {
+    const container = document.getElementById('sticker');
+    if (!container) return;
+    
+    // Проверяем, есть ли tgs-player
+    if (typeof customElements !== 'undefined' && customElements.get('tgs-player')) {
+        try {
+            const tgsPlayer = document.createElement('tgs-player');
+            tgsPlayer.setAttribute('src', '/AnimatedSticker.tgs');
+            tgsPlayer.setAttribute('autoplay', '');
+            tgsPlayer.setAttribute('loop', '');
+            tgsPlayer.style.width = '80px';
+            tgsPlayer.style.height = '80px';
+            container.innerHTML = '';
+            container.appendChild(tgsPlayer);
+            console.log('TGS Player загружен');
+            return;
+        } catch (e) {
+            console.warn('Ошибка TGS Player:', e);
+        }
+    }
+    
+    // Fallback: показываем эмодзи
+    container.innerHTML = '<span class="fallback-icon">🏆</span>';
+}
+
+// === Рендер рейтинга ===
+function render(data, filialMap, currentIndex) {
+    const content = document.getElementById('content');
+    const footer = document.getElementById('footer');
+    
+    if (!data.length) {
+        content.innerHTML = '<div class="error"><div class="error-icon">😔</div><div>Нет данных</div></div>';
+        return;
+    }
+    
+    let html = '';
+    
+    // Блок "Ваше место"
+    if (currentIndex >= 0) {
+        html += `<div class="my-place">
+            <div class="my-place-label">Ваше место</div>
+            <div class="my-place-value">${currentIndex + 1}</div>
+        </div>`;
+    }
+    
+    // Подиум (топ-3)
+    if (data.length >= 3) {
+        const order = [
+            { idx: 1, cls: 'silver', medal: '🥈' },
+            { idx: 0, cls: 'gold', medal: '🥇' },
+            { idx: 2, cls: 'bronze', medal: '🥉' }
+        ];
         
-        // Показ блока отладки сразу при загрузке
-        function showDebugBlock() {
-            const tabN = getTabN();
-            const fullname = getFullName();
-            const debugInfo = window.debugTabN || {};
-            const debugBlock = document.getElementById('debug-block');
-            
-            // Пробуем получить {{tab_nomer}} из различных источников
-            let puzzlebotTabN = null;
+        html += '<div class="podium">';
+        order.forEach(o => {
+            const d = data[o.idx];
+            const filial = filialMap[d.fio] || '';
+            html += `<div class="podium-item ${o.cls}">
+                <div class="podium-avatar">${o.medal}</div>
+                <div class="podium-name">${shortName(d.fio)}</div>
+                ${filial ? `<div class="podium-filial">${filial}</div>` : ''}
+                <div class="podium-score">${d.score} ⭐</div>
+                <div class="podium-pedestal"></div>
+            </div>`;
+        });
+        html += '</div>';
+    }
+    
+    // Остальные участники
+    const rest = data.slice(3);
+    if (rest.length) {
+        html += '<div class="section-title">Остальные участники</div>';
+        html += '<div class="list">';
+        rest.forEach((d, i) => {
+            const rank = i + 4;
+            const filial = filialMap[d.fio] || '';
+            const isCurrent = (i + 3) === currentIndex;
+            html += `<div class="item ${isCurrent ? 'current' : ''}">
+                <div class="rank">${rank}</div>
+                <div class="info">
+                    <div class="name">${shortName(d.fio)}</div>
+                    ${filial ? `<div class="filial">${filial}</div>` : ''}
+                </div>
+                <div class="score">${d.score}</div>
+            </div>`;
+        });
+        html += '</div>';
+    }
+    
+    content.innerHTML = html;
+    
+    // Футер
+    const now = new Date().toLocaleString('ru-RU', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+    });
+    footer.textContent = 'Обновлено: ' + now;
+}
+
+// === Загрузка данных ===
+async function loadData() {
+    try {
+        const headers = { 'xc-token': API_TOKEN };
+        
+        // 1. Получаем проекты
+        const projRes = await fetch(NOCODB_URL + '/api/v1/db/meta/projects', { headers });
+        const projects = (await projRes.json()).list || [];
+        const projectId = projects.find(p => p.title?.toLowerCase().includes('телеграм'))?.id || projects[0]?.id;
+        if (!projectId) throw new Error('Проект не найден');
+        
+        // 2. Получаем таблицы
+        const tabRes = await fetch(NOCODB_URL + '/api/v1/db/meta/projects/' + projectId + '/tables', { headers });
+        const tables = (await tabRes.json()).list || [];
+        
+        // 3. Данные из таблицы "День 1"
+        const tableId = tables.find(t => t.title === TABLE_NAME)?.id;
+        if (!tableId) throw new Error('Таблица "' + TABLE_NAME + '" не найдена');
+        
+        const dataRes = await fetch(NOCODB_URL + '/api/v1/db/data/noco/' + projectId + '/' + tableId, { headers });
+        const records = (await dataRes.json()).list || [];
+        
+        // 4. Данные из таблицы "Сотрудники" для филиалов
+        const empTableId = tables.find(t => t.title === 'Сотрудники')?.id;
+        const filialMap = {};
+        
+        if (empTableId) {
             try {
-                puzzlebotTabN = window['{{tab_nomer}}'] || window.tab_nomer || window.Tab_nomer;
-                if (!puzzlebotTabN && typeof window.eval === 'function') {
-                    try {
-                        puzzlebotTabN = eval('{{tab_nomer}}');
-                    } catch(e) {}
-                }
-            } catch(e) {}
-            
-            const finalTabN = tabN || puzzlebotTabN;
-            
-            if (finalTabN || fullname) {
-                debugBlock.innerHTML = `<div style="background: #FFD60A; color: #000; padding: 12px; border-radius: 12px; margin: 16px; text-align: center;">
-                    ${finalTabN ? `<div style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">✅ Табельный номер:</div>
-                    <div style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">${finalTabN}</div>` : ''}
-                    ${fullname ? `<div style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">✅ ФИО (fullname):</div>
-                    <div style="font-size: 16px; font-weight: 800; margin-bottom: 8px;">${fullname}</div>` : ''}
-                    <div style="font-size: 10px; color: #666; margin-top: 4px;">Источник: ${debugInfo.source || (puzzlebotTabN ? 'PuzzleBot' : fullname ? 'fullname' : 'неизвестно')}</div>
-                </div>`;
-            } else {
-                debugBlock.innerHTML = `<div style="background: rgba(255,59,48,0.15); border: 1px solid rgba(255,59,48,0.3); padding: 12px; border-radius: 12px; margin: 16px; text-align: center;">
-                    <div style="font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #FF3B30;">❌ Данные пользователя НЕ найдены</div>
-                    <div style="font-size: 10px; color: #888; margin-top: 4px; word-break: break-all;">URL: ${window.location.href}</div>
-                    <div style="font-size: 10px; color: #888; margin-top: 4px;">tab_nomer: ${finalTabN || 'не определен'}</div>
-                    <div style="font-size: 10px; color: #888; margin-top: 4px;">fullname: ${fullname || 'не определен'}</div>
-                    ${window.Telegram && window.Telegram.WebApp ? `<div style="font-size: 10px; color: #888; margin-top: 4px;">Telegram WebApp: ${window.Telegram.WebApp.initData ? 'есть initData' : 'нет initData'}</div>` : ''}
-                </div>`;
-            }
-        }
-        
-        // Вызываем сразу при загрузке
-        showDebugBlock();
-        
-        // Загрузка и отображение анимированного стикера
-        async function loadAnimatedSticker() {
-            const container = document.getElementById('header-icon');
-            if (!container) return;
-            
-            // Проверяем наличие библиотек
-            if (typeof pako === 'undefined') {
-                console.warn('Библиотека pako не загружена');
-                container.innerHTML = '<span style="font-size: 48px; display: block;">🏆</span>';
-                return;
-            }
-            
-            if (typeof lottie === 'undefined') {
-                console.warn('Библиотека lottie не загружена');
-                container.innerHTML = '<span style="font-size: 48px; display: block;">🏆</span>';
-                return;
-            }
-            
-            try {
-                // Пробуем разные пути к файлу (сначала абсолютный путь с текущего origin)
-                const baseUrl = window.location.origin;
-                const paths = [
-                    baseUrl + '/AnimatedSticker.tgs',  // Приоритет: абсолютный путь
-                    '/AnimatedSticker.tgs',
-                    './AnimatedSticker.tgs',
-                    'AnimatedSticker.tgs'
-                ];
-                
-                let response = null;
-                let lastError = null;
-                let successfulPath = null;
-                
-                for (const path of paths) {
-                    try {
-                        console.log('Попытка загрузить стикер из:', path);
-                        response = await fetch(path);
-                        if (response.ok) {
-                            successfulPath = path;
-                            console.log('Стикер найден по пути:', path);
-                            break;
-                        } else {
-                            console.warn('Путь не доступен:', path, 'Status:', response.status);
-                        }
-                    } catch (e) {
-                        lastError = e;
-                        console.warn('Ошибка при загрузке из', path, ':', e.message);
-                        continue;
+                const empRes = await fetch(NOCODB_URL + '/api/v1/db/data/noco/' + projectId + '/' + empTableId, { headers });
+                const employees = (await empRes.json()).list || [];
+                employees.forEach(emp => {
+                    const fio = emp['ФИО сотрудника'] || emp['ФИО'] || '';
+                    const filial = emp['Филиал сотрудника'] || emp['Филиал'] || '';
+                    if (fio && filial) {
+                        filialMap[String(fio).trim()] = String(filial).trim();
                     }
-                }
-                
-                if (!response || !response.ok) {
-                    throw new Error('Файл стикера не найден. Попробованы пути: ' + paths.join(', ') + '. Последняя ошибка: ' + (lastError?.message || 'неизвестна'));
-                }
-                
-                const arrayBuffer = await response.arrayBuffer();
-                const uint8Array = new Uint8Array(arrayBuffer);
-                
-                // Распаковываем gzip (.tgs файлы - это gzip-сжатые JSON)
-                const decompressed = pako.inflate(uint8Array, { to: 'string' });
-                const animationData = JSON.parse(decompressed);
-                
-                // Создаем анимацию Lottie
-                lottie.loadAnimation({
-                    container: container,
-                    renderer: 'svg',
-                    loop: true,
-                    autoplay: true,
-                    animationData: animationData
                 });
-                
-                console.log('Анимированный стикер успешно загружен');
             } catch (e) {
-                console.error('Не удалось загрузить анимированный стикер:', e);
-                // Fallback на эмодзи кубка
-                container.innerHTML = '<span style="font-size: 48px; display: block;">🏆</span>';
+                console.warn('Не удалось загрузить филиалы:', e);
             }
         }
         
-        // Функция для ожидания загрузки библиотек
-        function waitForLibraries(callback, maxAttempts = 50) {
-            let attempts = 0;
-            const checkLibraries = () => {
-                attempts++;
-                if (typeof pako !== 'undefined' && typeof lottie !== 'undefined') {
-                    callback();
-                } else if (attempts < maxAttempts) {
-                    setTimeout(checkLibraries, 100);
-                } else {
-                    console.warn('Библиотеки не загрузились за отведенное время');
-                    const container = document.getElementById('header-icon');
-                    if (container) {
-                        container.innerHTML = '<span style="font-size: 48px; display: block;">🏆</span>';
-                    }
-                }
-            };
-            checkLibraries();
-        }
-        
-        // Загружаем стикер после загрузки DOM и библиотек
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                waitForLibraries(loadAnimatedSticker);
-            });
-        } else {
-            waitForLibraries(loadAnimatedSticker);
-        }
-        
-        // Отрисовка
-        function render(data, filialMap, currentTabN, tabNMap, currentFullname) {
-            const content = document.getElementById('content');
-            const footer = document.getElementById('footer');
-            const updateTime = document.getElementById('updateTime');
-            
-            if (!data.length) {
-                content.innerHTML = '<div class="error"><div class="error-icon">😔</div><div>Нет данных</div></div>';
-                return;
-            }
-            
-            // Находим место текущего пользователя
-            let currentPlace = null;
-            let currentIndex = -1;
-            
-            // Сначала пробуем найти по fullname (приоритет)
-            const fullname = getFullName();
-            if (fullname) {
-                // Ищем точное совпадение или частичное (без учета регистра и пробелов)
-                const searchFio = String(fullname).trim().toLowerCase().replace(/\s+/g, ' ');
-                currentIndex = data.findIndex(d => {
-                    const dataFio = String(d.fio).trim().toLowerCase().replace(/\s+/g, ' ');
-                    return dataFio === searchFio || dataFio.includes(searchFio) || searchFio.includes(dataFio);
-                });
-                if (currentIndex >= 0) {
-                    currentPlace = currentIndex + 1;
-                }
-            }
-            
-            // Если не нашли по fullname, пробуем по табельному номеру
-            if (currentIndex < 0 && currentTabN && tabNMap) {
-                const currentFio = tabNMap[currentTabN];
-                if (currentFio) {
-                    currentIndex = data.findIndex(d => d.fio === currentFio);
-                    if (currentIndex >= 0) {
-                        currentPlace = currentIndex + 1;
-                    }
-                }
-            }
-            
-            let html = '';
-            
-            // Блок с местом текущего пользователя
-            if (currentPlace) {
-                html += `<div class="my-place" style="background: rgba(10, 132, 255, 0.15); border: 1px solid rgba(10, 132, 255, 0.3); border-radius: 16px; padding: 16px; margin: 16px 0; text-align: center;">
-                    <div style="font-size: 13px; color: var(--ios-text-secondary); margin-bottom: 8px;">Ваше место</div>
-                    <div style="font-size: 32px; font-weight: 700; color: var(--ios-accent);">${currentPlace}</div>
-                </div>`;
-            }
-            
-            // Подиум
-            if (data.length >= 3) {
-                const order = [{i:1, c:'podium-2', m:'🥈'}, {i:0, c:'podium-1', m:'🥇'}, {i:2, c:'podium-3', m:'🥉'}];
-                html += '<div class="podium">';
-                order.forEach((o, idx) => {
-                    const d = data[o.i];
-                    const filial = filialMap[d.fio] || '';
-                    html += `<div class="podium-item ${o.c}" style="animation-delay: ${0.1 * (idx+1)}s;">
-                        <div class="podium-avatar">${o.m}</div>
-                        <div class="podium-name">${short(d.fio)}</div>
-                        ${filial ? `<div style="font-size: 10px; color: var(--ios-text-secondary); text-align: center; margin-bottom: 4px;">${filial}</div>` : ''}
-                        <div class="podium-score">${d.score} ⭐</div>
-                        <div class="podium-pedestal"></div>
-                    </div>`;
-                });
-                html += '</div>';
-            }
-            
-            // Остальные
-            const rest = data.slice(3);
-            if (rest.length) {
-                html += '<div class="rating-section"><div class="section-title">Остальные участники</div><div class="rating-list">';
-                rest.forEach((d, i) => {
-                    const filial = filialMap[d.fio] || '';
-                    const rank = i + 4;
-                    const isCurrent = (i + 3) === currentIndex;
-                    const scoreClass = d.score >= 4 ? 'score-high' : (d.score >= 2 ? 'score-medium' : 'score-low');
-                    html += `<div class="rating-item ${scoreClass} ${isCurrent ? 'current' : ''}" style="animation-delay: ${0.05 * rank}s; ${isCurrent ? 'background: rgba(10, 132, 255, 0.1); border-left: 3px solid var(--ios-accent);' : ''}">
-                        <div class="rank-number" style="${isCurrent ? 'background: var(--ios-accent); color: #fff;' : ''}">${rank}</div>
-                        <div class="user-info">
-                            <div class="user-name" style="${isCurrent ? 'font-weight: 600; color: var(--ios-accent);' : ''}">${short(d.fio)}</div>
-                            ${filial ? `<div style="font-size: 11px; color: var(--ios-text-secondary); margin-top: 2px;">${filial}</div>` : ''}
-                        </div>
-                        <div class="score-pill">
-                            <span class="score-value">${d.score}</span>
-                            <span class="score-label">баллов</span>
-                        </div>
-                    </div>`;
-                });
-                html += '</div></div>';
-            }
-            
-            content.innerHTML = html;
-            
-            const now = new Date();
-            const timeStr = now.toLocaleString('ru-RU', {
-                day: '2-digit', month: '2-digit', year: 'numeric',
-                hour: '2-digit', minute: '2-digit'
-            });
-            updateTime.innerHTML = `<span>Обновлено: ${timeStr}</span>`;
-            footer.style.display = 'block';
-        }
-        
-        // Загрузка данных
-        async function load() {
-            try {
-                const headers = { 'xc-token': API_TOKEN };
-                
-                // 1. Проекты
-                const projRes = await fetch(NOCODB_URL + '/api/v1/db/meta/projects', { headers });
-                const projects = (await projRes.json()).list || [];
-                let projectId = projects.find(p => p.title?.toLowerCase().includes('телеграм'))?.id || projects[0]?.id;
-                if (!projectId) throw new Error('Проект не найден');
-                
-                // 2. Таблицы
-                const tabRes = await fetch(NOCODB_URL + '/api/v1/db/meta/projects/' + projectId + '/tables', { headers });
-                const tables = (await tabRes.json()).list || [];
-                
-                // 3. Данные из таблицы "День 1"
-                let tableId = tables.find(t => t.title === TABLE_NAME)?.id;
-                if (!tableId) throw new Error('Таблица "День 1" не найдена');
-                
-                const dataRes = await fetch(NOCODB_URL + '/api/v1/db/data/noco/' + projectId + '/' + tableId, { headers });
-                const records = (await dataRes.json()).list || [];
-                
-                // 4. Данные из таблицы "Сотрудники" для получения филиалов
-                let employeesTableId = tables.find(t => t.title === 'Сотрудники')?.id;
-                let filialMap = {};
-                
-                if (employeesTableId) {
-                    try {
-                        const empRes = await fetch(NOCODB_URL + '/api/v1/db/data/noco/' + projectId + '/' + employeesTableId, { headers });
-                        const employees = (await empRes.json()).list || [];
-                        
-                        employees.forEach(emp => {
-                            let fio = emp['ФИО сотрудника'] || emp['ФИО'] || '';
-                            if (!fio) {
-                                for (const k of Object.keys(emp)) {
-                                    if (k.toLowerCase().includes('фио') && !k.toLowerCase().includes('тренер')) {
-                                        fio = emp[k] || '';
-                                        if (fio) break;
-                                    }
-                                }
-                            }
-                            if (fio) {
-                                const filial = emp['Филиал сотрудника'] || emp['Филиал'] || '';
-                                if (filial) {
-                                    filialMap[String(fio).trim()] = String(filial).trim();
-                                }
-                            }
-                        });
-                    } catch (e) {
-                        console.warn('Не удалось загрузить филиалы:', e);
-                    }
-                }
-                
-                // 5. Обработка данных рейтинга и создание маппинга Tab_n -> ФИО
-                const tabNMap = {};
-                const result = records
-                    .map(r => {
-                        let fio = r['ФИО сотрудника'] || '';
-                        if (!fio) {
-                            for (const k of Object.keys(r)) {
-                                if (k.toLowerCase().includes('фио') && !k.toLowerCase().includes('тренер')) {
-                                    fio = r[k] || '';
-                                    if (fio) break;
-                                }
-                            }
+        // 5. Обработка данных
+        const tabNMap = {};
+        const data = records
+            .map(r => {
+                let fio = r['ФИО сотрудника'] || '';
+                if (!fio) {
+                    for (const k of Object.keys(r)) {
+                        if (k.toLowerCase().includes('фио') && !k.toLowerCase().includes('тренер')) {
+                            fio = r[k] || '';
+                            if (fio) break;
                         }
-                        fio = String(fio).trim();
-                        
-                        // Ищем табельный номер (tab_nomer, Tab_nomer, Tab_n)
-                        const tabN = r['tab_nomer'] || r['Tab_nomer'] || r['Tab_n'] || r['tab_n'] || '';
-                        if (tabN && fio) {
-                            tabNMap[String(tabN).trim()] = fio;
-                        }
-                        
-                        return { fio, score: parseFloat(r['Оценка'] || 0) || 0 };
-                    })
-                    .filter(x => x.fio)
-                    .sort((a, b) => b.score - a.score);
+                    }
+                }
+                fio = String(fio).trim();
                 
-                const currentTabN = getTabN();
-                const currentFullname = getFullName();
-                render(result, filialMap, currentTabN, tabNMap, currentFullname);
-            } catch (e) {
-                document.getElementById('content').innerHTML = '<div class="error"><div class="error-icon">⚠️</div><div>Ошибка загрузки</div><div style="margin-top: 8px; font-size: 13px; opacity: 0.7;">' + e.message + '</div></div>';
+                const tabN = r['tab_nomer'] || r['Tab_nomer'] || r['Tab_n'] || '';
+                if (tabN && fio) {
+                    tabNMap[String(tabN).trim()] = fio;
+                }
+                
+                return { fio, score: parseFloat(r['Оценка'] || 0) || 0 };
+            })
+            .filter(x => x.fio)
+            .sort((a, b) => b.score - a.score);
+        
+        // 6. Находим текущего пользователя
+        let currentIndex = -1;
+        
+        // Сначала по fullname
+        const fullname = getFullName();
+        if (fullname) {
+            const searchFio = fullname.toLowerCase().replace(/\s+/g, ' ');
+            currentIndex = data.findIndex(d => {
+                const dataFio = d.fio.toLowerCase().replace(/\s+/g, ' ');
+                return dataFio === searchFio || dataFio.includes(searchFio) || searchFio.includes(dataFio);
+            });
+        }
+        
+        // Если не нашли, по табельному номеру
+        if (currentIndex < 0) {
+            const tabN = getTabNomer();
+            if (tabN && tabNMap[tabN]) {
+                const fio = tabNMap[tabN];
+                currentIndex = data.findIndex(d => d.fio === fio);
             }
         }
         
-        load();
-        setInterval(load, 30000);
-    </script>
+        render(data, filialMap, currentIndex);
+        
+    } catch (e) {
+        console.error('Ошибка загрузки:', e);
+        document.getElementById('content').innerHTML = 
+            `<div class="error">
+                <div class="error-icon">⚠️</div>
+                <div>Ошибка загрузки</div>
+                <div style="font-size: 12px; margin-top: 8px; opacity: 0.7;">${e.message}</div>
+            </div>`;
+    }
+}
+
+// === Инициализация ===
+showDebug();
+loadSticker();
+loadData();
+
+// Обновление каждые 30 секунд
+setInterval(loadData, 30000);
+</script>
 </body>
 </html>
-
