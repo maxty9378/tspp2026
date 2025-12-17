@@ -1,23 +1,5 @@
 {
-  "name": "rating-telegram-app",
+  "name": "tspp2026-rating",
   "version": "1.0.0",
-  "description": "Рейтинг сотрудников для Telegram Mini App",
-  "main": "index.html",
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "scripts": {
-    "dev": "vercel dev",
-    "build": "echo 'No build step required'"
-  },
-  "keywords": [
-    "telegram",
-    "rating",
-    "nocodb"
-  ],
-  "author": "",
-  "license": "MIT",
-  "dependencies": {},
-  "devDependencies": {}
+  "private": true
 }
-

@@ -1,9 +1,8 @@
 {
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/index.html"
+  "version": 2,
+  "functions": {
+    "api/rating.js": {
+      "runtime": "@vercel/node@3.0.0"
     }
-  ]
+  }
 }
-
