@@ -536,16 +536,32 @@
             const debugInfo = window.debugTabN || {};
             const debugBlock = document.getElementById('debug-block');
             
-            if (tabN) {
+            // Пробуем получить {{tab_nomer}} из различных источников
+            let puzzlebotTabN = null;
+            try {
+                // Проверяем window.{{tab_nomer}} или window['{{tab_nomer}}']
+                puzzlebotTabN = window['{{tab_nomer}}'] || window.tab_nomer || window.Tab_nomer;
+                // Также проверяем через eval (если PuzzleBot подставляет переменные)
+                if (!puzzlebotTabN && typeof window.eval === 'function') {
+                    try {
+                        puzzlebotTabN = eval('{{tab_nomer}}');
+                    } catch(e) {}
+                }
+            } catch(e) {}
+            
+            if (tabN || puzzlebotTabN) {
+                const finalTabN = tabN || puzzlebotTabN;
                 debugBlock.innerHTML = `<div style="background: #FFD60A; color: #000; padding: 12px; border-radius: 12px; margin: 16px; text-align: center;">
                     <div style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">✅ Найден табельный номер:</div>
-                    <div style="font-size: 20px; font-weight: 800;">${tabN}</div>
-                    <div style="font-size: 10px; color: #666; margin-top: 4px;">Источник: ${debugInfo.source || 'неизвестно'}</div>
+                    <div style="font-size: 20px; font-weight: 800;">${finalTabN}</div>
+                    <div style="font-size: 10px; color: #666; margin-top: 4px;">Источник: ${debugInfo.source || (puzzlebotTabN ? 'PuzzleBot {{tab_nomer}}' : 'неизвестно')}</div>
+                    ${puzzlebotTabN ? `<div style="font-size: 10px; color: #666; margin-top: 2px;">{{tab_nomer}} = ${puzzlebotTabN}</div>` : ''}
                 </div>`;
             } else {
                 debugBlock.innerHTML = `<div style="background: rgba(255,59,48,0.15); border: 1px solid rgba(255,59,48,0.3); padding: 12px; border-radius: 12px; margin: 16px; text-align: center;">
                     <div style="font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #FF3B30;">❌ Табельный номер НЕ найден</div>
                     <div style="font-size: 10px; color: #888; margin-top: 4px; word-break: break-all;">URL: ${window.location.href}</div>
+                    <div style="font-size: 10px; color: #888; margin-top: 4px;">{{tab_nomer}}: ${puzzlebotTabN || 'не определен'}</div>
                     ${window.Telegram && window.Telegram.WebApp ? `<div style="font-size: 10px; color: #888; margin-top: 4px;">Telegram WebApp: ${window.Telegram.WebApp.initData ? 'есть initData' : 'нет initData'}</div>` : ''}
                 </div>`;
             }
