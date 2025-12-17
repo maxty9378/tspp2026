@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Рейтинг - День 1</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(180deg, #0A0A0A 0%, #000 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        .header-icon { font-size: 48px; margin-bottom: 8px; }
+        .header-title { font-size: 28px; font-weight: 700; }
+        .header-sub { font-size: 14px; color: #8E8E93; margin-top: 4px; }
+        
+        .podium {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 8px;
+            margin: 24px 0;
+        }
+        .podium-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            max-width: 110px;
+        }
+        .podium-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .podium-1 .podium-avatar { 
+            width: 72px; height: 72px; font-size: 32px;
+            background: linear-gradient(135deg, #FFD60A 0%, #FF9F0A 100%);
+            box-shadow: 0 8px 24px rgba(255, 214, 10, 0.3);
+        }
+        .podium-2 .podium-avatar { background: linear-gradient(135deg, #98989D 0%, #636366 100%); }
+        .podium-3 .podium-avatar { background: linear-gradient(135deg, #AC8E68 0%, #8B7355 100%); }
+        
+        .podium-name {
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 4px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .podium-score {
+            font-size: 14px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: #2C2C2E;
+        }
+        .podium-1 .podium-score { background: rgba(255, 214, 10, 0.2); color: #FFD60A; }
+        
+        .podium-pedestal {
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 8px 8px 0 0;
+            background: #1C1C1E;
+        }
+        .podium-1 .podium-pedestal { height: 70px; }
+        .podium-2 .podium-pedestal { height: 50px; }
+        .podium-3 .podium-pedestal { height: 35px; }
+        
+        .section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #8E8E93;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 16px 0 8px;
+        }
+        .rating-list {
+            background: #1C1C1E;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .rating-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 14px;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .rating-item:last-child { border-bottom: none; }
+        
+        .rank-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            background: #2C2C2E;
+            color: #8E8E93;
+        }
+        .user-name {
+            flex: 1;
+            font-size: 16px;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .score-pill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 10px;
+            border-radius: 16px;
+            background: rgba(10, 132, 255, 0.15);
+        }
+        .score-value { font-size: 16px; font-weight: 700; color: #0A84FF; }
+        .score-label { font-size: 12px; color: #8E8E93; }
+        
+        .score-high .score-pill { background: rgba(48, 209, 88, 0.15); }
+        .score-high .score-value { color: #30D158; }
+        .score-low .score-pill { background: #2C2C2E; }
+        .score-low .score-value { color: #8E8E93; }
+        
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            font-size: 12px;
+            color: #48484A;
+        }
+        .update-time {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: #1C1C1E;
+            border-radius: 16px;
+            color: #8E8E93;
+        }
+        .loading, .error {
+            text-align: center;
+            padding: 60px 20px;
+            color: #8E8E93;
+        }
+        .error-icon { font-size: 48px; margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-icon">🏆</div>
+        <div class="header-title">Рейтинг</div>
+        <div class="header-sub">День 1 • Марафон</div>
+    </div>
+    
+    <div id="content">
+        <div class="loading">⏳ Загрузка данных...</div>
+    </div>
+    
+    <div class="footer" id="footer" style="display:none;">
+        <div class="update-time" id="update-time"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://tspp2026.vercel.app/api/rating';
+        
+        function shortName(fio) {
+            const parts = fio.split(' ');
+            if (parts.length >= 2) {
+                return parts[0] + ' ' + parts[1].charAt(0) + '.';
+            }
+            return fio;
+        }
+        
+        function render(data) {
+            const content = document.getElementById('content');
+            const footer = document.getElementById('footer');
+            const updateTime = document.getElementById('update-time');
+            
+            if (!data || data.length === 0) {
+                content.innerHTML = '<div class="error"><div class="error-icon">😔</div><div>Нет данных</div></div>';
+                return;
+            }
+            
+            let html = '';
+            
+            // Подиум для топ-3
+            if (data.length >= 3) {
+                const order = [1, 0, 2]; // 2nd, 1st, 3rd
+                const medals = ['🥈', '🥇', '🥉'];
+                const classes = ['podium-2', 'podium-1', 'podium-3'];
+                
+                html += '<div class="podium">';
+                order.forEach((idx, i) => {
+                    const item = data[idx];
+                    html += `
+                        <div class="podium-item ${classes[i]}">
+                            <div class="podium-avatar">${medals[i]}</div>
+                            <div class="podium-name">${shortName(item.fio)}</div>
+                            <div class="podium-score">${item.score} ⭐</div>
+                            <div class="podium-pedestal"></div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            // Остальные участники
+            const rest = data.slice(3);
+            if (rest.length > 0) {
+                html += '<div class="section-title">Остальные участники</div>';
+                html += '<div class="rating-list">';
+                rest.forEach((item, i) => {
+                    const rank = i + 4;
+                    let scoreClass = 'score-low';
+                    if (item.score >= 4) scoreClass = 'score-high';
+                    else if (item.score >= 2) scoreClass = '';
+                    
+                    html += `
+                        <div class="rating-item ${scoreClass}">
+                            <div class="rank-num">${rank}</div>
+                            <div class="user-name">${item.fio}</div>
+                            <div class="score-pill">
+                                <span class="score-value">${item.score}</span>
+                                <span class="score-label">баллов</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            content.innerHTML = html;
+            
+            // Время обновления
+            const now = new Date();
+            const timeStr = now.toLocaleString('ru-RU', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+            updateTime.innerHTML = `<span>🔄</span><span>Обновлено: ${timeStr}</span>`;
+            footer.style.display = 'block';
+        }
+        
+        async function load() {
+            try {
+                const res = await fetch(API_URL);
+                const json = await res.json();
+                if (json.success && json.data) {
+                    render(json.data);
+                } else {
+                    throw new Error(json.error || 'Ошибка');
+                }
+            } catch (e) {
+                document.getElementById('content').innerHTML = 
+                    '<div class="error"><div class="error-icon">⚠️</div><div>Ошибка загрузки</div></div>';
+            }
+        }
+        
+        load();
+        setInterval(load, 30000);
+    </script>
+</body>
+</html>
+
