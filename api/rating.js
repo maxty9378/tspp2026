@@ -1,60 +1,7 @@
 // API endpoint для получения данных рейтинга из NocoDB
-const https = require('https');
-const http = require('http');
-
 const NOCODB_URL = process.env.NOCODB_URL || "https://nocodb.puzzlebot.top";
 const API_TOKEN = process.env.NOCODB_API_TOKEN || "avKy8Ov_rNMIRMf-hgneulQKWsrXMhqmdqfc6uR1";
 const TABLE_NAME = "День 1";
-
-// Функция для выполнения HTTP запросов (совместимость с Node.js)
-function makeRequest(url, options = {}) {
-  return new Promise((resolve, reject) => {
-    const urlObj = new URL(url);
-    const isHttps = urlObj.protocol === 'https:';
-    const httpModule = isHttps ? https : http;
-    
-    const requestOptions = {
-      hostname: urlObj.hostname,
-      port: urlObj.port || (isHttps ? 443 : 80),
-      path: urlObj.pathname + urlObj.search,
-      method: options.method || 'GET',
-      headers: options.headers || {}
-    };
-    
-    const req = httpModule.request(requestOptions, (res) => {
-      let data = '';
-      
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
-      
-      res.on('end', () => {
-        try {
-          const jsonData = JSON.parse(data);
-          resolve({
-            ok: res.statusCode >= 200 && res.statusCode < 300,
-            status: res.statusCode,
-            json: async () => jsonData,
-            text: async () => data
-          });
-        } catch (e) {
-          resolve({
-            ok: res.statusCode >= 200 && res.statusCode < 300,
-            status: res.statusCode,
-            json: async () => ({ error: 'Invalid JSON', raw: data }),
-            text: async () => data
-          });
-        }
-      });
-    });
-    
-    req.on('error', (error) => {
-      reject(error);
-    });
-    
-    req.end();
-  });
-}
 
 // Функция для извлечения ФИО из записи
 function getFioFromRecord(record) {
@@ -111,12 +58,13 @@ function filterAndSortRecords(records) {
   return filtered;
 }
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   try {
     // CORS headers для Telegram Mini App
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Content-Type', 'application/json');
     
     if (req.method === 'OPTIONS') {
       return res.status(200).end();
@@ -129,6 +77,7 @@ module.exports = async function handler(req, res) {
         timestamp: new Date().toISOString()
       });
     }
+    
     const headers = {
       "xc-token": API_TOKEN,
       "Content-Type": "application/json"
@@ -136,7 +85,7 @@ module.exports = async function handler(req, res) {
     
     // Получаем список проектов
     const projectsUrl = `${NOCODB_URL}/api/v1/db/meta/projects`;
-    const projectsResponse = await makeRequest(projectsUrl, { headers });
+    const projectsResponse = await fetch(projectsUrl, { headers });
     
     if (!projectsResponse.ok) {
       throw new Error(`Failed to fetch projects: ${projectsResponse.status}`);
@@ -165,7 +114,7 @@ module.exports = async function handler(req, res) {
     
     // Получаем список таблиц
     const tablesUrl = `${NOCODB_URL}/api/v1/db/meta/projects/${projectId}/tables`;
-    const tablesResponse = await makeRequest(tablesUrl, { headers });
+    const tablesResponse = await fetch(tablesUrl, { headers });
     
     if (!tablesResponse.ok) {
       throw new Error(`Failed to fetch tables: ${tablesResponse.status}`);
@@ -189,7 +138,7 @@ module.exports = async function handler(req, res) {
     
     // Получаем данные из таблицы
     const dataUrl = `${NOCODB_URL}/api/v1/db/data/noco/${projectId}/${tableId}?sort=-Оценка`;
-    const dataResponse = await makeRequest(dataUrl, { headers });
+    const dataResponse = await fetch(dataUrl, { headers });
     
     if (!dataResponse.ok) {
       throw new Error(`Failed to fetch data: ${dataResponse.status}`);
@@ -217,4 +166,3 @@ module.exports = async function handler(req, res) {
     });
   }
 }
-
