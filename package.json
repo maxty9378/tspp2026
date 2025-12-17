@@ -1,0 +1,20 @@
+{
+  "name": "rating-telegram-app",
+  "version": "1.0.0",
+  "description": "Рейтинг сотрудников для Telegram Mini App",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step required'"
+  },
+  "keywords": [
+    "telegram",
+    "rating",
+    "nocodb"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}
+
