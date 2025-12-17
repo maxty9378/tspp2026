@@ -1,7 +1,64 @@
 // API endpoint для получения данных рейтинга из NocoDB
+const https = require('https');
+const { URL } = require('url');
+
 const NOCODB_URL = process.env.NOCODB_URL || "https://nocodb.puzzlebot.top";
 const API_TOKEN = process.env.NOCODB_API_TOKEN || "avKy8Ov_rNMIRMf-hgneulQKWsrXMhqmdqfc6uR1";
 const TABLE_NAME = "День 1";
+
+// Функция для выполнения HTTP запросов
+function makeRequest(url, options = {}) {
+  return new Promise((resolve, reject) => {
+    try {
+      const urlObj = new URL(url);
+      const requestOptions = {
+        hostname: urlObj.hostname,
+        port: urlObj.port || 443,
+        path: urlObj.pathname + urlObj.search,
+        method: options.method || 'GET',
+        headers: options.headers || {}
+      };
+      
+      const req = https.request(requestOptions, (res) => {
+        let data = '';
+        
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+        
+        res.on('end', () => {
+          try {
+            const jsonData = JSON.parse(data);
+            resolve({
+              ok: res.statusCode >= 200 && res.statusCode < 300,
+              status: res.statusCode,
+              json: async () => jsonData
+            });
+          } catch (e) {
+            resolve({
+              ok: false,
+              status: res.statusCode,
+              json: async () => ({ error: 'Invalid JSON', raw: data.substring(0, 200) })
+            });
+          }
+        });
+      });
+      
+      req.on('error', (error) => {
+        reject(error);
+      });
+      
+      req.setTimeout(30000, () => {
+        req.destroy();
+        reject(new Error('Request timeout'));
+      });
+      
+      req.end();
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
 
 // Функция для извлечения ФИО из записи
 function getFioFromRecord(record) {
@@ -85,7 +142,7 @@ module.exports = async function handler(req, res) {
     
     // Получаем список проектов
     const projectsUrl = `${NOCODB_URL}/api/v1/db/meta/projects`;
-    const projectsResponse = await fetch(projectsUrl, { headers });
+    const projectsResponse = await makeRequest(projectsUrl, { headers });
     
     if (!projectsResponse.ok) {
       throw new Error(`Failed to fetch projects: ${projectsResponse.status}`);
@@ -114,7 +171,7 @@ module.exports = async function handler(req, res) {
     
     // Получаем список таблиц
     const tablesUrl = `${NOCODB_URL}/api/v1/db/meta/projects/${projectId}/tables`;
-    const tablesResponse = await fetch(tablesUrl, { headers });
+    const tablesResponse = await makeRequest(tablesUrl, { headers });
     
     if (!tablesResponse.ok) {
       throw new Error(`Failed to fetch tables: ${tablesResponse.status}`);
@@ -138,7 +195,7 @@ module.exports = async function handler(req, res) {
     
     // Получаем данные из таблицы
     const dataUrl = `${NOCODB_URL}/api/v1/db/data/noco/${projectId}/${tableId}?sort=-Оценка`;
-    const dataResponse = await fetch(dataUrl, { headers });
+    const dataResponse = await makeRequest(dataUrl, { headers });
     
     if (!dataResponse.ok) {
       throw new Error(`Failed to fetch data: ${dataResponse.status}`);
