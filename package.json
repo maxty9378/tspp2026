@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Рейтинг сотрудников для Telegram Mini App",
   "main": "index.html",
+  "engines": {
+    "node": ">=18.x"
+  },
   "scripts": {
     "dev": "vercel dev",
     "build": "echo 'No build step required'"
