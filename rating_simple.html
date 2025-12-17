@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рейтинг - День 1</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .header { text-align: center; padding: 20px 0; margin-bottom: 20px; }
+        .header-icon { font-size: 48px; }
+        .header-title { font-size: 28px; font-weight: 700; margin-top: 8px; }
+        .header-sub { font-size: 14px; color: #888; margin-top: 4px; }
+        
+        .podium { display: flex; justify-content: center; align-items: flex-end; gap: 8px; margin: 24px 0; }
+        .podium-item { display: flex; flex-direction: column; align-items: center; flex: 1; max-width: 110px; }
+        .podium-avatar { width: 60px; height: 60px; border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 8px; }
+        .gold .podium-avatar { width: 72px; height: 72px; font-size: 32px; background: linear-gradient(135deg, #FFD700, #FFA500); }
+        .silver .podium-avatar { background: linear-gradient(135deg, #C0C0C0, #808080); }
+        .bronze .podium-avatar { background: linear-gradient(135deg, #CD7F32, #8B4513); }
+        .podium-name { font-size: 12px; font-weight: 600; text-align: center; margin-bottom: 4px; }
+        .podium-score { font-size: 14px; font-weight: 700; padding: 4px 10px; border-radius: 12px; background: #222; }
+        .gold .podium-score { background: rgba(255,215,0,0.2); color: #FFD700; }
+        .podium-pedestal { width: 100%; margin-top: 10px; border-radius: 8px 8px 0 0; background: #1a1a1a; }
+        .gold .podium-pedestal { height: 70px; }
+        .silver .podium-pedestal { height: 50px; }
+        .bronze .podium-pedestal { height: 35px; }
+        
+        .section-title { font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; padding: 16px 0 8px; }
+        .list { background: #1a1a1a; border-radius: 12px; }
+        .item { display: flex; align-items: center; padding: 12px 14px; gap: 12px; border-bottom: 1px solid #333; }
+        .item:last-child { border-bottom: none; }
+        .rank { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: #333; color: #888; }
+        .name { flex: 1; font-size: 16px; font-weight: 500; }
+        .score { padding: 5px 10px; border-radius: 16px; background: rgba(0,122,255,0.2); color: #007AFF; font-weight: 700; }
+        
+        .footer { text-align: center; padding: 20px; font-size: 12px; color: #555; }
+        .loading, .error { text-align: center; padding: 60px; color: #888; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-icon">🏆</div>
+        <div class="header-title">Рейтинг</div>
+        <div class="header-sub">День 1 • Марафон</div>
+    </div>
+    <div id="content"><div class="loading">⏳ Загрузка...</div></div>
+    <div class="footer" id="footer"></div>
+
+<script>
+// === НАСТРОЙКИ ===
+const NOCODB_URL = 'https://nocodb.puzzlebot.top';
+const API_TOKEN = 'avKy8Ov_rNMIRMf-hgneulQKWsrXMhqmdqfc6uR1';
+const TABLE_NAME = 'День 1';
+
+// Короткое имя
+function short(fio) {
+    const p = fio.split(' ');
+    return p.length >= 2 ? p[0] + ' ' + p[1][0] + '.' : fio;
+}
+
+// Отрисовка
+function render(data) {
+    if (!data.length) {
+        document.getElementById('content').innerHTML = '<div class="error">😔 Нет данных</div>';
+        return;
+    }
+    
+    let html = '';
+    
+    // Подиум
+    if (data.length >= 3) {
+        const order = [{i:1, c:'silver', m:'🥈'}, {i:0, c:'gold', m:'🥇'}, {i:2, c:'bronze', m:'🥉'}];
+        html += '<div class="podium">';
+        order.forEach(o => {
+            const d = data[o.i];
+            html += `<div class="podium-item ${o.c}">
+                <div class="podium-avatar">${o.m}</div>
+                <div class="podium-name">${short(d.fio)}</div>
+                <div class="podium-score">${d.score} ⭐</div>
+                <div class="podium-pedestal"></div>
+            </div>`;
+        });
+        html += '</div>';
+    }
+    
+    // Остальные
+    const rest = data.slice(3);
+    if (rest.length) {
+        html += '<div class="section-title">Остальные участники</div><div class="list">';
+        rest.forEach((d, i) => {
+            html += `<div class="item">
+                <div class="rank">${i + 4}</div>
+                <div class="name">${d.fio}</div>
+                <div class="score">${d.score}</div>
+            </div>`;
+        });
+        html += '</div>';
+    }
+    
+    document.getElementById('content').innerHTML = html;
+    document.getElementById('footer').textContent = '🔄 Обновлено: ' + new Date().toLocaleString('ru-RU');
+}
+
+// Загрузка данных
+async function load() {
+    try {
+        const headers = { 'xc-token': API_TOKEN };
+        
+        // 1. Проекты
+        const projRes = await fetch(NOCODB_URL + '/api/v1/db/meta/projects', { headers });
+        const projects = (await projRes.json()).list || [];
+        let projectId = projects.find(p => p.title?.toLowerCase().includes('телеграм'))?.id || projects[0]?.id;
+        if (!projectId) throw new Error('Проект не найден');
+        
+        // 2. Таблицы
+        const tabRes = await fetch(NOCODB_URL + '/api/v1/db/meta/projects/' + projectId + '/tables', { headers });
+        const tables = (await tabRes.json()).list || [];
+        let tableId = tables.find(t => t.title === TABLE_NAME)?.id;
+        if (!tableId) throw new Error('Таблица не найдена');
+        
+        // 3. Данные
+        const dataRes = await fetch(NOCODB_URL + '/api/v1/db/data/noco/' + projectId + '/' + tableId, { headers });
+        const records = (await dataRes.json()).list || [];
+        
+        // 4. Обработка
+        const result = records
+            .map(r => {
+                let fio = r['ФИО сотрудника'] || '';
+                if (!fio) {
+                    for (const k of Object.keys(r)) {
+                        if (k.toLowerCase().includes('фио') && !k.toLowerCase().includes('тренер')) {
+                            fio = r[k] || '';
+                            if (fio) break;
+                        }
+                    }
+                }
+                return { fio: String(fio).trim(), score: parseFloat(r['Оценка'] || 0) || 0 };
+            })
+            .filter(x => x.fio)
+            .sort((a, b) => b.score - a.score);
+        
+        render(result);
+    } catch (e) {
+        document.getElementById('content').innerHTML = '<div class="error">⚠️ ' + e.message + '</div>';
+    }
+}
+
+load();
+setInterval(load, 30000);
+</script>
+</body>
+</html>
+
