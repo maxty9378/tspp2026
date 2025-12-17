@@ -143,19 +143,26 @@ function getTabN() {
         } catch (e) {}
     }
     
-    // Логируем для отладки
+    // Сохраняем информацию об источнике для отображения на странице
+    let source = null;
     if (tabN) {
-        console.log('Найден табельный номер:', tabN);
-    } else {
-        console.log('Табельный номер не найден. URL:', window.location.href);
-        if (window.Telegram && window.Telegram.WebApp) {
-            console.log('Telegram WebApp:', {
-                initData: window.Telegram.WebApp.initData?.substring(0, 100),
-                initDataUnsafe: window.Telegram.WebApp.initDataUnsafe,
-                startParam: window.Telegram.WebApp.startParam
-            });
+        if (urlParams.get('tab_nomer') || urlParams.get('Tab_nomer')) source = 'URL параметры';
+        else if (window.location.hash && (hashParams.get('tab_nomer') || hashParams.get('Tab_nomer'))) source = 'Hash параметры';
+        else if (window.Telegram && window.Telegram.WebApp) {
+            const tg = window.Telegram.WebApp;
+            if (tg.initData && (new URLSearchParams(tg.initData).get('tab_nomer') || new URLSearchParams(tg.initData).get('Tab_nomer'))) {
+                source = 'Telegram initData';
+            } else if (tg.initDataUnsafe && (tg.initDataUnsafe.tab_nomer || tg.initDataUnsafe.Tab_nomer)) {
+                source = 'Telegram initDataUnsafe';
+            } else if (tg.startParam && tg.startParam.includes('tab_nomer')) {
+                source = 'Telegram startParam';
+            }
         }
+        if (!source && localStorage.getItem('tab_nomer')) source = 'localStorage';
     }
+    
+    // Сохраняем для отображения
+    window.debugTabN = { value: tabN, source: source, url: window.location.href };
     
     return tabN ? String(tabN).trim() : null;
 }
@@ -182,11 +189,19 @@ function render(data, filialMap, currentTabN, tabNMap) {
     
     let html = '';
     
-    // Блок с табельным номером для теста (всегда показываем, если найден)
-    if (currentTabN) {
+    // Блок с табельным номером для теста (всегда показываем информацию)
+    const debugInfo = window.debugTabN || {};
+    if (debugInfo.value) {
         html += `<div class="debug-info">
-            <div class="debug-label">Найден табельный номер (тест):</div>
-            <div class="debug-value">${currentTabN}</div>
+            <div class="debug-label">✅ Найден табельный номер:</div>
+            <div class="debug-value">${debugInfo.value}</div>
+            <div style="font-size: 10px; color: #666; margin-top: 4px;">Источник: ${debugInfo.source || 'неизвестно'}</div>
+        </div>`;
+    } else {
+        html += `<div class="debug-info" style="background: rgba(255,59,48,0.15); border-color: rgba(255,59,48,0.3);">
+            <div class="debug-label">❌ Табельный номер НЕ найден</div>
+            <div style="font-size: 10px; color: #666; margin-top: 4px; word-break: break-all;">URL: ${debugInfo.url || window.location.href}</div>
+            ${window.Telegram && window.Telegram.WebApp ? `<div style="font-size: 10px; color: #666; margin-top: 4px;">Telegram WebApp: ${window.Telegram.WebApp.initData ? 'есть initData' : 'нет initData'}</div>` : ''}
         </div>`;
     }
     
