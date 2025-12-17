@@ -86,18 +86,22 @@ function short(fio) {
     return fio;
 }
 
-// Получение Tab_n из URL или Telegram WebApp
+// Получение табельного номера из URL или Telegram WebApp
 function getTabN() {
     // Из URL параметров
     const urlParams = new URLSearchParams(window.location.search);
-    let tabN = urlParams.get('Tab_n');
+    let tabN = urlParams.get('Tab_n') || urlParams.get('tab_nomer');
     
-    // Из Telegram WebApp initData
+    // Из Telegram WebApp initData (переменная tab_nomer)
     if (!tabN && window.Telegram && window.Telegram.WebApp) {
         const tg = window.Telegram.WebApp;
         if (tg.initData) {
             const initData = new URLSearchParams(tg.initData);
-            tabN = initData.get('Tab_n') || initData.get('tab_n');
+            tabN = initData.get('tab_nomer') || initData.get('Tab_nomer') || initData.get('Tab_n') || initData.get('tab_n');
+        }
+        // Также проверяем в initDataUnsafe
+        if (!tabN && tg.initDataUnsafe) {
+            tabN = tg.initDataUnsafe.tab_nomer || tg.initDataUnsafe.Tab_nomer || tg.initDataUnsafe.Tab_n;
         }
     }
     
