@@ -659,29 +659,39 @@
             }
             
             try {
-                // Пробуем разные пути к файлу
+                // Пробуем разные пути к файлу (сначала абсолютный путь с текущего origin)
+                const baseUrl = window.location.origin;
                 const paths = [
+                    baseUrl + '/AnimatedSticker.tgs',  // Приоритет: абсолютный путь
                     '/AnimatedSticker.tgs',
                     './AnimatedSticker.tgs',
-                    'AnimatedSticker.tgs',
-                    window.location.origin + '/AnimatedSticker.tgs'
+                    'AnimatedSticker.tgs'
                 ];
                 
                 let response = null;
                 let lastError = null;
+                let successfulPath = null;
                 
                 for (const path of paths) {
                     try {
+                        console.log('Попытка загрузить стикер из:', path);
                         response = await fetch(path);
-                        if (response.ok) break;
+                        if (response.ok) {
+                            successfulPath = path;
+                            console.log('Стикер найден по пути:', path);
+                            break;
+                        } else {
+                            console.warn('Путь не доступен:', path, 'Status:', response.status);
+                        }
                     } catch (e) {
                         lastError = e;
+                        console.warn('Ошибка при загрузке из', path, ':', e.message);
                         continue;
                     }
                 }
                 
                 if (!response || !response.ok) {
-                    throw new Error('Файл стикера не найден. Попробованы пути: ' + paths.join(', '));
+                    throw new Error('Файл стикера не найден. Попробованы пути: ' + paths.join(', ') + '. Последняя ошибка: ' + (lastError?.message || 'неизвестна'));
                 }
                 
                 const arrayBuffer = await response.arrayBuffer();
