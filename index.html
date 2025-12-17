@@ -445,141 +445,211 @@
             document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#1C1C1E');
         }
         
-        // Функция для получения короткого имени
-        function getShortName(fullName) {
-            const parts = fullName.split(' ');
-            if (parts.length > 1) {
-                return parts[0] + ' ' + parts[1][0] + '.';
+        // === НАСТРОЙКИ ===
+        const NOCODB_URL = 'https://nocodb.puzzlebot.top';
+        const API_TOKEN = 'avKy8Ov_rNMIRMf-hgneulQKWsrXMhqmdqfc6uR1';
+        const TABLE_NAME = 'День 1';
+        
+        // Короткое имя в формате "Имя Ф."
+        function short(fio) {
+            const p = fio.split(' ').filter(x => x);
+            if (p.length >= 2) {
+                // p[0] = Фамилия, p[1] = Имя
+                return p[1] + ' ' + p[0][0].toUpperCase() + '.';
             }
-            return fullName;
+            return fio;
         }
         
-        // Функция для определения класса оценки
-        function getScoreClass(score) {
-            const num = parseFloat(score) || 0;
-            if (num >= 4) return 'score-high';
-            if (num >= 2) return 'score-medium';
-            return 'score-low';
+        // Получение Tab_n из URL или Telegram WebApp
+        function getTabN() {
+            const urlParams = new URLSearchParams(window.location.search);
+            let tabN = urlParams.get('Tab_n');
+            
+            if (!tabN && window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+                if (tg.initData) {
+                    const initData = new URLSearchParams(tg.initData);
+                    tabN = initData.get('Tab_n') || initData.get('tab_n');
+                }
+            }
+            
+            return tabN ? String(tabN).trim() : null;
         }
         
-        // Функция для рендеринга рейтинга
-        function renderRating(data) {
+        // Отрисовка
+        function render(data, filialMap, currentTabN, tabNMap) {
             const content = document.getElementById('content');
             const footer = document.getElementById('footer');
             const updateTime = document.getElementById('updateTime');
             
-            if (!data || data.length === 0) {
-                content.innerHTML = `
-                    <div class="error">
-                        <div class="error-icon">📭</div>
-                        <div>Данные не найдены</div>
-                    </div>
-                `;
+            if (!data.length) {
+                content.innerHTML = '<div class="error"><div class="error-icon">😔</div><div>Нет данных</div></div>';
                 return;
+            }
+            
+            // Находим место текущего пользователя
+            let currentPlace = null;
+            let currentIndex = -1;
+            if (currentTabN && tabNMap) {
+                const currentFio = tabNMap[currentTabN];
+                if (currentFio) {
+                    currentIndex = data.findIndex(d => d.fio === currentFio);
+                    if (currentIndex >= 0) {
+                        currentPlace = currentIndex + 1;
+                    }
+                }
             }
             
             let html = '';
             
-            // Подиум для топ-3
+            // Блок с местом текущего пользователя
+            if (currentPlace) {
+                html += `<div class="my-place" style="background: rgba(10, 132, 255, 0.15); border: 1px solid rgba(10, 132, 255, 0.3); border-radius: 16px; padding: 16px; margin: 16px 0; text-align: center;">
+                    <div style="font-size: 13px; color: var(--ios-text-secondary); margin-bottom: 8px;">Ваше место</div>
+                    <div style="font-size: 32px; font-weight: 700; color: var(--ios-accent);">${currentPlace}</div>
+                </div>`;
+            }
+            
+            // Подиум
             if (data.length >= 3) {
-                const top3 = [data[1], data[0], data[2]]; // 2nd, 1st, 3rd
-                const positions = [2, 1, 3];
-                const medals = ['🥈', '🥇', '🥉'];
-                
+                const order = [{i:1, c:'podium-2', m:'🥈'}, {i:0, c:'podium-1', m:'🥇'}, {i:2, c:'podium-3', m:'🥉'}];
                 html += '<div class="podium">';
-                top3.forEach((item, i) => {
-                    const pos = positions[i];
-                    const medal = medals[i];
-                    const shortName = getShortName(item.fio);
-                    html += `
-                        <div class="podium-item podium-${pos}" style="animation-delay: ${0.1 * (i+1)}s;">
-                            <div class="podium-avatar">${medal}</div>
-                            <div class="podium-name">${shortName}</div>
-                            <div class="podium-score">${item.score} ⭐</div>
-                            <div class="podium-pedestal"></div>
-                        </div>
-                    `;
+                order.forEach((o, idx) => {
+                    const d = data[o.i];
+                    const filial = filialMap[d.fio] || '';
+                    html += `<div class="podium-item ${o.c}" style="animation-delay: ${0.1 * (idx+1)}s;">
+                        <div class="podium-avatar">${o.m}</div>
+                        <div class="podium-name">${short(d.fio)}</div>
+                        ${filial ? `<div style="font-size: 10px; color: var(--ios-text-secondary); text-align: center; margin-bottom: 4px;">${filial}</div>` : ''}
+                        <div class="podium-score">${d.score} ⭐</div>
+                        <div class="podium-pedestal"></div>
+                    </div>`;
                 });
                 html += '</div>';
             }
             
-            // Остальные участники
-            const remaining = data.slice(3);
-            const startIndex = 4;
-            
-            if (remaining.length > 0) {
-                html += `
-                    <div class="rating-section">
-                        <div class="section-title">Остальные участники</div>
-                        <div class="rating-list">
-                `;
-                
-                remaining.forEach((item, i) => {
-                    const index = startIndex + i;
-                    const scoreClass = getScoreClass(item.score);
-                    html += `
-                        <div class="rating-item ${scoreClass}" style="animation-delay: ${0.05 * index}s;">
-                            <div class="rank-number">${index}</div>
-                            <div class="user-info">
-                                <div class="user-name">${item.fio}</div>
-                            </div>
-                            <div class="score-pill">
-                                <span class="score-value">${item.score}</span>
-                                <span class="score-label">баллов</span>
-                            </div>
+            // Остальные
+            const rest = data.slice(3);
+            if (rest.length) {
+                html += '<div class="rating-section"><div class="section-title">Остальные участники</div><div class="rating-list">';
+                rest.forEach((d, i) => {
+                    const filial = filialMap[d.fio] || '';
+                    const rank = i + 4;
+                    const isCurrent = (i + 3) === currentIndex;
+                    const scoreClass = d.score >= 4 ? 'score-high' : (d.score >= 2 ? 'score-medium' : 'score-low');
+                    html += `<div class="rating-item ${scoreClass} ${isCurrent ? 'current' : ''}" style="animation-delay: ${0.05 * rank}s; ${isCurrent ? 'background: rgba(10, 132, 255, 0.1); border-left: 3px solid var(--ios-accent);' : ''}">
+                        <div class="rank-number" style="${isCurrent ? 'background: var(--ios-accent); color: #fff;' : ''}">${rank}</div>
+                        <div class="user-info">
+                            <div class="user-name" style="${isCurrent ? 'font-weight: 600; color: var(--ios-accent);' : ''}">${short(d.fio)}</div>
+                            ${filial ? `<div style="font-size: 11px; color: var(--ios-text-secondary); margin-top: 2px;">${filial}</div>` : ''}
                         </div>
-                    `;
+                        <div class="score-pill">
+                            <span class="score-value">${d.score}</span>
+                            <span class="score-label">баллов</span>
+                        </div>
+                    </div>`;
                 });
-                
-                html += `
-                        </div>
-                    </div>
-                `;
+                html += '</div></div>';
             }
             
             content.innerHTML = html;
             
-            // Обновляем время
             const now = new Date();
             const timeStr = now.toLocaleString('ru-RU', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
             });
-            updateTime.innerHTML = `<span>🔄</span><span>Обновлено: ${timeStr}</span>`;
+            updateTime.innerHTML = `<span>Обновлено: ${timeStr}</span>`;
             footer.style.display = 'block';
         }
         
         // Загрузка данных
-        async function loadRating() {
+        async function load() {
             try {
-                const response = await fetch('/api/rating');
-                const result = await response.json();
+                const headers = { 'xc-token': API_TOKEN };
                 
-                if (result.success && result.data) {
-                    renderRating(result.data);
-                } else {
-                    throw new Error(result.error || 'Ошибка загрузки данных');
+                // 1. Проекты
+                const projRes = await fetch(NOCODB_URL + '/api/v1/db/meta/projects', { headers });
+                const projects = (await projRes.json()).list || [];
+                let projectId = projects.find(p => p.title?.toLowerCase().includes('телеграм'))?.id || projects[0]?.id;
+                if (!projectId) throw new Error('Проект не найден');
+                
+                // 2. Таблицы
+                const tabRes = await fetch(NOCODB_URL + '/api/v1/db/meta/projects/' + projectId + '/tables', { headers });
+                const tables = (await tabRes.json()).list || [];
+                
+                // 3. Данные из таблицы "День 1"
+                let tableId = tables.find(t => t.title === TABLE_NAME)?.id;
+                if (!tableId) throw new Error('Таблица "День 1" не найдена');
+                
+                const dataRes = await fetch(NOCODB_URL + '/api/v1/db/data/noco/' + projectId + '/' + tableId, { headers });
+                const records = (await dataRes.json()).list || [];
+                
+                // 4. Данные из таблицы "Сотрудники" для получения филиалов
+                let employeesTableId = tables.find(t => t.title === 'Сотрудники')?.id;
+                let filialMap = {};
+                
+                if (employeesTableId) {
+                    try {
+                        const empRes = await fetch(NOCODB_URL + '/api/v1/db/data/noco/' + projectId + '/' + employeesTableId, { headers });
+                        const employees = (await empRes.json()).list || [];
+                        
+                        employees.forEach(emp => {
+                            let fio = emp['ФИО сотрудника'] || emp['ФИО'] || '';
+                            if (!fio) {
+                                for (const k of Object.keys(emp)) {
+                                    if (k.toLowerCase().includes('фио') && !k.toLowerCase().includes('тренер')) {
+                                        fio = emp[k] || '';
+                                        if (fio) break;
+                                    }
+                                }
+                            }
+                            if (fio) {
+                                const filial = emp['Филиал сотрудника'] || emp['Филиал'] || '';
+                                if (filial) {
+                                    filialMap[String(fio).trim()] = String(filial).trim();
+                                }
+                            }
+                        });
+                    } catch (e) {
+                        console.warn('Не удалось загрузить филиалы:', e);
+                    }
                 }
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('content').innerHTML = `
-                    <div class="error">
-                        <div class="error-icon">⚠️</div>
-                        <div>Ошибка загрузки данных</div>
-                        <div style="margin-top: 8px; font-size: 13px; opacity: 0.7;">${error.message}</div>
-                    </div>
-                `;
+                
+                // 5. Обработка данных рейтинга и создание маппинга Tab_n -> ФИО
+                const tabNMap = {};
+                const result = records
+                    .map(r => {
+                        let fio = r['ФИО сотрудника'] || '';
+                        if (!fio) {
+                            for (const k of Object.keys(r)) {
+                                if (k.toLowerCase().includes('фио') && !k.toLowerCase().includes('тренер')) {
+                                    fio = r[k] || '';
+                                    if (fio) break;
+                                }
+                            }
+                        }
+                        fio = String(fio).trim();
+                        
+                        const tabN = r['Tab_n'] || r['tab_n'] || '';
+                        if (tabN && fio) {
+                            tabNMap[String(tabN).trim()] = fio;
+                        }
+                        
+                        return { fio, score: parseFloat(r['Оценка'] || 0) || 0 };
+                    })
+                    .filter(x => x.fio)
+                    .sort((a, b) => b.score - a.score);
+                
+                const currentTabN = getTabN();
+                render(result, filialMap, currentTabN, tabNMap);
+            } catch (e) {
+                document.getElementById('content').innerHTML = '<div class="error"><div class="error-icon">⚠️</div><div>Ошибка загрузки</div><div style="margin-top: 8px; font-size: 13px; opacity: 0.7;">' + e.message + '</div></div>';
             }
         }
         
-        // Загружаем данные при загрузке страницы
-        loadRating();
-        
-        // Автообновление каждые 30 секунд
-        setInterval(loadRating, 30000);
+        load();
+        setInterval(load, 30000);
     </script>
 </body>
 </html>
