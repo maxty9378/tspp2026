@@ -556,6 +556,15 @@
         async function loadRating() {
             try {
                 const response = await fetch('/api/rating');
+                
+                // Проверяем Content-Type
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('Expected JSON but got:', contentType, text.substring(0, 200));
+                    throw new Error('Сервер вернул не JSON. Проверьте API endpoint.');
+                }
+                
                 const result = await response.json();
                 
                 if (result.success && result.data) {
