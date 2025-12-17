@@ -418,6 +418,7 @@
             </div>
         </div>
         
+        <div id="debug-block"></div>
         <div class="content" id="content">
             <div class="loading">
                 <div class="loading-spinner"></div>
@@ -529,6 +530,30 @@
             return tabN ? String(tabN).trim() : null;
         }
         
+        // Показ блока отладки сразу при загрузке
+        function showDebugBlock() {
+            const tabN = getTabN();
+            const debugInfo = window.debugTabN || {};
+            const debugBlock = document.getElementById('debug-block');
+            
+            if (tabN) {
+                debugBlock.innerHTML = `<div style="background: #FFD60A; color: #000; padding: 12px; border-radius: 12px; margin: 16px; text-align: center;">
+                    <div style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">✅ Найден табельный номер:</div>
+                    <div style="font-size: 20px; font-weight: 800;">${tabN}</div>
+                    <div style="font-size: 10px; color: #666; margin-top: 4px;">Источник: ${debugInfo.source || 'неизвестно'}</div>
+                </div>`;
+            } else {
+                debugBlock.innerHTML = `<div style="background: rgba(255,59,48,0.15); border: 1px solid rgba(255,59,48,0.3); padding: 12px; border-radius: 12px; margin: 16px; text-align: center;">
+                    <div style="font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #FF3B30;">❌ Табельный номер НЕ найден</div>
+                    <div style="font-size: 10px; color: #888; margin-top: 4px; word-break: break-all;">URL: ${window.location.href}</div>
+                    ${window.Telegram && window.Telegram.WebApp ? `<div style="font-size: 10px; color: #888; margin-top: 4px;">Telegram WebApp: ${window.Telegram.WebApp.initData ? 'есть initData' : 'нет initData'}</div>` : ''}
+                </div>`;
+            }
+        }
+        
+        // Вызываем сразу при загрузке
+        showDebugBlock();
+        
         // Отрисовка
         function render(data, filialMap, currentTabN, tabNMap) {
             const content = document.getElementById('content');
@@ -554,22 +579,6 @@
             }
             
             let html = '';
-            
-            // Блок с табельным номером для теста (всегда показываем информацию)
-            const debugInfo = window.debugTabN || {};
-            if (debugInfo.value) {
-                html += `<div style="background: rgba(255, 193, 7, 0.15); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 16px; padding: 16px; margin: 16px 0; text-align: center;">
-                    <div style="font-size: 13px; color: var(--ios-text-secondary); margin-bottom: 8px;">✅ Найден табельный номер:</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #FFC107; margin-bottom: 4px;">${debugInfo.value}</div>
-                    <div style="font-size: 11px; color: var(--ios-text-tertiary);">Источник: ${debugInfo.source || 'неизвестно'}</div>
-                </div>`;
-            } else {
-                html += `<div style="background: rgba(255, 59, 48, 0.15); border: 1px solid rgba(255, 59, 48, 0.3); border-radius: 16px; padding: 16px; margin: 16px 0; text-align: center;">
-                    <div style="font-size: 13px; color: var(--ios-text-secondary); margin-bottom: 8px;">❌ Табельный номер НЕ найден</div>
-                    <div style="font-size: 11px; color: var(--ios-text-tertiary); word-break: break-all; margin-top: 4px;">URL: ${debugInfo.url || window.location.href}</div>
-                    ${window.Telegram && window.Telegram.WebApp ? `<div style="font-size: 11px; color: var(--ios-text-tertiary); margin-top: 4px;">Telegram WebApp: ${window.Telegram.WebApp.initData ? 'есть initData' : 'нет initData'}</div>` : ''}
-                </div>`;
-            }
             
             // Блок с местом текущего пользователя
             if (currentPlace) {

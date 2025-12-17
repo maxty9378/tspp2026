@@ -79,6 +79,7 @@
         <div class="header-title">Рейтинг</div>
         <div class="header-sub">День 1 • Марафон</div>
     </div>
+    <div id="debug-block"></div>
     <div id="content"><div class="loading">⏳ Загрузка...</div></div>
     <div class="footer" id="footer"></div>
 
@@ -189,22 +190,6 @@ function render(data, filialMap, currentTabN, tabNMap) {
     
     let html = '';
     
-    // Блок с табельным номером для теста (всегда показываем информацию)
-    const debugInfo = window.debugTabN || {};
-    if (debugInfo.value) {
-        html += `<div class="debug-info">
-            <div class="debug-label">✅ Найден табельный номер:</div>
-            <div class="debug-value">${debugInfo.value}</div>
-            <div style="font-size: 10px; color: #666; margin-top: 4px;">Источник: ${debugInfo.source || 'неизвестно'}</div>
-        </div>`;
-    } else {
-        html += `<div class="debug-info" style="background: rgba(255,59,48,0.15); border-color: rgba(255,59,48,0.3);">
-            <div class="debug-label">❌ Табельный номер НЕ найден</div>
-            <div style="font-size: 10px; color: #666; margin-top: 4px; word-break: break-all;">URL: ${debugInfo.url || window.location.href}</div>
-            ${window.Telegram && window.Telegram.WebApp ? `<div style="font-size: 10px; color: #666; margin-top: 4px;">Telegram WebApp: ${window.Telegram.WebApp.initData ? 'есть initData' : 'нет initData'}</div>` : ''}
-        </div>`;
-    }
-    
     // Блок с местом текущего пользователя
     if (currentPlace) {
         html += `<div class="my-place">
@@ -255,6 +240,30 @@ function render(data, filialMap, currentTabN, tabNMap) {
     document.getElementById('content').innerHTML = html;
     document.getElementById('footer').textContent = 'Обновлено: ' + new Date().toLocaleString('ru-RU');
 }
+
+// Показ блока отладки сразу при загрузке
+function showDebugBlock() {
+    const tabN = getTabN();
+    const debugInfo = window.debugTabN || {};
+    const debugBlock = document.getElementById('debug-block');
+    
+    if (tabN) {
+        debugBlock.innerHTML = `<div class="debug-info" style="background: #FFD60A; color: #000; padding: 12px; border-radius: 12px; margin-bottom: 16px; text-align: center;">
+            <div style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">✅ Найден табельный номер:</div>
+            <div style="font-size: 20px; font-weight: 800;">${tabN}</div>
+            <div style="font-size: 10px; color: #666; margin-top: 4px;">Источник: ${debugInfo.source || 'неизвестно'}</div>
+        </div>`;
+    } else {
+        debugBlock.innerHTML = `<div class="debug-info" style="background: rgba(255,59,48,0.15); border: 1px solid rgba(255,59,48,0.3); padding: 12px; border-radius: 12px; margin-bottom: 16px; text-align: center;">
+            <div style="font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #FF3B30;">❌ Табельный номер НЕ найден</div>
+            <div style="font-size: 10px; color: #888; margin-top: 4px; word-break: break-all;">URL: ${window.location.href}</div>
+            ${window.Telegram && window.Telegram.WebApp ? `<div style="font-size: 10px; color: #888; margin-top: 4px;">Telegram WebApp: ${window.Telegram.WebApp.initData ? 'есть initData' : 'нет initData'}</div>` : ''}
+        </div>`;
+    }
+}
+
+// Вызываем сразу при загрузке
+showDebugBlock();
 
 // Загрузка данных
 async function load() {
