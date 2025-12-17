@@ -37,7 +37,7 @@
         .item { display: flex; align-items: center; padding: 12px 14px; gap: 12px; border-bottom: 1px solid #333; }
         .item:last-child { border-bottom: none; }
         .rank { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: #333; color: #888; }
-        .name { flex: 1; font-size: 16px; font-weight: 500; }
+        .name { flex: 1; font-size: 12px; font-weight: 500; }
         .score { padding: 5px 10px; border-radius: 16px; background: rgba(0,122,255,0.2); color: #007AFF; font-weight: 700; }
         
         .footer { text-align: center; padding: 20px; font-size: 12px; color: #555; }
@@ -59,10 +59,14 @@ const NOCODB_URL = 'https://nocodb.puzzlebot.top';
 const API_TOKEN = 'avKy8Ov_rNMIRMf-hgneulQKWsrXMhqmdqfc6uR1';
 const TABLE_NAME = 'День 1';
 
-// Короткое имя
+// Короткое имя в формате "Имя Ф."
 function short(fio) {
-    const p = fio.split(' ');
-    return p.length >= 2 ? p[0] + ' ' + p[1][0] + '.' : fio;
+    const p = fio.split(' ').filter(x => x);
+    if (p.length >= 2) {
+        // p[0] = Фамилия, p[1] = Имя
+        return p[1] + ' ' + p[0][0].toUpperCase() + '.';
+    }
+    return fio;
 }
 
 // Отрисовка
@@ -97,7 +101,7 @@ function render(data) {
         rest.forEach((d, i) => {
             html += `<div class="item">
                 <div class="rank">${i + 4}</div>
-                <div class="name">${d.fio}</div>
+                <div class="name">${short(d.fio)}</div>
                 <div class="score">${d.score}</div>
             </div>`;
         });
