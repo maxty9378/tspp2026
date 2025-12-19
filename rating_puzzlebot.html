@@ -652,38 +652,39 @@
             let html = '';
 
             // Отладочный блок (можно убрать после тестирования)
-            const tgUserId = getTelegramUserId();
             const tabNumber = getTabNumber();
-            const userFullName = getUserFullName();
             const tg = window.Telegram?.WebApp;
             const isDebug = true; // Установите false чтобы скрыть
             
             if (isDebug) {
                 const isFound = currentUserIndex >= 0;
-                const tabFio = tabNumber && state.tabUserMap ? state.tabUserMap[tabNumber] : null;
+                // Проверяем есть ли tabNomer в данных
+                const hasTabNomer = data.some(d => d.tabNomer);
                 html += `
                     <div class="debug-block ${isFound ? 'success' : ''}">
-                        <div class="debug-title">🔍 v4 - Отладка</div>
+                        <div class="debug-title">🔍 v5</div>
                         <div class="debug-row">
-                            <span class="debug-label">tab=</span>
+                            <span class="debug-label">?tab=</span>
                             <span class="debug-value">${tabNumber || '❌ не передан'}</span>
-                        </div>
-                        <div class="debug-row">
-                            <span class="debug-label">ФИО по tab:</span>
-                            <span class="debug-value">${tabFio || '❌'}</span>
                         </div>
                         <div class="debug-row">
                             <span class="debug-label">URL:</span>
                             <span class="debug-value" style="font-size: 9px;">${window.location.search || '(пусто)'}</span>
                         </div>
                         <div class="debug-row">
-                            <span class="debug-label">Найден:</span>
-                            <span class="debug-value">${isFound ? '✅ #' + (currentUserIndex + 1) + ' ' + currentUserFio : '❌'}</span>
+                            <span class="debug-label">API tabNomer:</span>
+                            <span class="debug-value">${hasTabNomer ? '✅' : '❌ нет в данных'}</span>
                         </div>
                         <div class="debug-row">
-                            <span class="debug-label">Регистраций:</span>
-                            <span class="debug-value">${Object.keys(state.tabUserMap || {}).length}</span>
+                            <span class="debug-label">Найден:</span>
+                            <span class="debug-value">${isFound ? '✅ #' + (currentUserIndex + 1) : '❌'}</span>
                         </div>
+                        ${isFound ? `
+                        <div class="debug-row">
+                            <span class="debug-label">ФИО:</span>
+                            <span class="debug-value">${currentUserFio}</span>
+                        </div>
+                        ` : ''}
                     </div>
                 `;
             }
@@ -981,23 +982,16 @@
                 state.currentUserIndex = -1;
                 state.currentUserFio = '';
                 
-                // Способ 0: По табельному номеру из URL (?tab=...)
+                // Способ 0: По табельному номеру из URL (?tab=...) — ищем прямо в данных рейтинга
                 const tabNumber = getTabNumber();
-                if (tabNumber && state.tabUserMap[tabNumber]) {
-                    const userFio = state.tabUserMap[tabNumber];
-                    if (userFio) {
-                        const searchFio = userFio.toLowerCase().trim();
-                        state.currentUserIndex = state.data.findIndex(d => {
-                            const dataFio = d.fio.toLowerCase().trim();
-                            return dataFio === searchFio || 
-                                   dataFio.includes(searchFio) || 
-                                   searchFio.includes(dataFio);
-                        });
-                        if (state.currentUserIndex >= 0) {
-                            state.currentUserFio = state.data[state.currentUserIndex].fio;
-                        }
+                if (tabNumber) {
+                    state.currentUserIndex = state.data.findIndex(d => 
+                        String(d.tabNomer || '').trim() === tabNumber
+                    );
+                    if (state.currentUserIndex >= 0) {
+                        state.currentUserFio = state.data[state.currentUserIndex].fio;
                     }
-                    console.log('Поиск по таб. номеру:', { tabNumber, fio: userFio, index: state.currentUserIndex });
+                    console.log('Поиск по таб. номеру:', { tabNumber, index: state.currentUserIndex, fio: state.currentUserFio });
                 }
                 
                 // Способ 1: По Telegram ID из таблицы регистрации

@@ -123,7 +123,9 @@ module.exports = async (req, res) => {
         fio = String(fio).trim();
         const filial = filialMap[fio] || '';
         const score = parseFloat(r['Оценка'] || r['оценка'] || 0) || 0;
-        return { fio, filial, score };
+        // Табельный номер
+        const tabNomer = r['Табельный номер (tab_nomer)'] || r['tab_nomer'] || r['Табельный номер'] || '';
+        return { fio, filial, score, tabNomer: String(tabNomer).trim() };
       })
       .filter(x => x.fio)
       .sort((a, b) => b.score - a.score);
