@@ -179,17 +179,46 @@
 
         .podium__crown {
             position: absolute;
-            top: -18px;
+            top: -24px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 22px;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-            animation: crownBounce 1s ease-in-out infinite;
+            width: 36px;
+            height: 28px;
+            filter: drop-shadow(0 2px 6px rgba(255, 200, 50, 0.6));
+            animation: crownFloat 2.5s ease-in-out infinite;
         }
 
-        @keyframes crownBounce {
-            0%, 100% { transform: translateX(-50%) translateY(0); }
-            50% { transform: translateX(-50%) translateY(-3px); }
+        .podium__crown svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        @keyframes crownFloat {
+            0%, 100% { 
+                transform: translateX(-50%) translateY(0) rotate(-2deg); 
+                filter: drop-shadow(0 2px 6px rgba(255, 200, 50, 0.6));
+            }
+            50% { 
+                transform: translateX(-50%) translateY(-4px) rotate(2deg); 
+                filter: drop-shadow(0 4px 12px rgba(255, 200, 50, 0.8));
+            }
+        }
+
+        .podium__crown-shine {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 70%);
+            animation: crownShine 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes crownShine {
+            0%, 100% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+            50% { opacity: 1; transform: translateX(-50%) scale(1.2); }
         }
 
         .podium__rank {
@@ -481,13 +510,39 @@
 
             if (podium.length) {
                 const placeClass = ['gold', 'silver', 'bronze'];
-                const placeEmoji = ['👑', '', ''];
+                const crownSvg = `<svg viewBox="0 0 36 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="crownGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#FFE066"/>
+                            <stop offset="30%" style="stop-color:#FFD700"/>
+                            <stop offset="50%" style="stop-color:#FFC107"/>
+                            <stop offset="70%" style="stop-color:#FFD700"/>
+                            <stop offset="100%" style="stop-color:#FFE066"/>
+                        </linearGradient>
+                        <linearGradient id="crownHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.6"/>
+                            <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0"/>
+                        </linearGradient>
+                        <filter id="crownGlow">
+                            <feGaussianBlur stdDeviation="1" result="blur"/>
+                            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                    </defs>
+                    <path d="M3 24L6 10L12 16L18 6L24 16L30 10L33 24H3Z" fill="url(#crownGold)" filter="url(#crownGlow)"/>
+                    <path d="M3 24L6 10L12 16L18 6L24 16L30 10L33 24H3Z" fill="url(#crownHighlight)" opacity="0.4"/>
+                    <circle cx="18" cy="7" r="2.5" fill="#FF6B6B"/>
+                    <circle cx="6" cy="11" r="2" fill="#4ECDC4"/>
+                    <circle cx="30" cy="11" r="2" fill="#4ECDC4"/>
+                    <path d="M5 24H31V26C31 27 30 28 29 28H7C6 28 5 27 5 26V24Z" fill="url(#crownGold)"/>
+                    <rect x="5" y="24" width="26" height="1" fill="rgba(255,255,255,0.5)"/>
+                </svg>`;
+                
                 html += '<div class="podium">';
                 podium.forEach((item, idx) => {
                     html += `
                         <div class="podium__item podium__item--${placeClass[idx] || 'bronze'}">
                             <div class="podium__avatar">
-                                ${placeEmoji[idx] ? `<span class="podium__crown">${placeEmoji[idx]}</span>` : ''}
+                                ${idx === 0 ? `<div class="podium__crown-shine"></div><span class="podium__crown">${crownSvg}</span>` : ''}
                                 <span class="podium__rank">${idx + 1}</span>
                             </div>
                             <div class="podium__name" title="${item.fio}">${shortName(item.fio)}</div>
