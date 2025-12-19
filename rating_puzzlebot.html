@@ -113,43 +113,165 @@
             background: var(--card);
         }
 
-        .podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-
-        .podium__item {
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            padding: 10px 8px;
-            text-align: center;
-            background: var(--card-strong);
+        .podium {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 6px;
+            padding: 20px 0 0;
+            min-height: 220px;
         }
 
-        .podium__medal {
-            width: 46px;
-            height: 46px;
-            border-radius: 12px;
-            margin: 0 auto 8px;
+        .podium__item {
+            flex: 1;
+            max-width: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            animation: podiumRise 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+        }
+
+        .podium__item:nth-child(1) { animation-delay: 0.2s; }
+        .podium__item:nth-child(2) { animation-delay: 0s; }
+        .podium__item:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes podiumRise {
+            from { opacity: 0; transform: translateY(40px) scale(0.8); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .podium__avatar {
+            position: relative;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
             display: grid;
             place-items: center;
-            font-size: 20px;
-            font-weight: 700;
-            color: #0f1116;
+            font-size: 28px;
+            margin-bottom: 8px;
+            z-index: 2;
+        }
+
+        /* Золото - 1 место */
+        .podium__item--gold .podium__avatar {
+            background: linear-gradient(145deg, #ffd700, #ffb347, #ffd700);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 179, 71, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+            animation: goldGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes goldGlow {
+            from { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 179, 71, 0.3); }
+            to { box-shadow: 0 0 30px rgba(255, 215, 0, 0.7), 0 0 60px rgba(255, 179, 71, 0.5); }
+        }
+
+        /* Серебро - 2 место */
+        .podium__item--silver .podium__avatar {
+            background: linear-gradient(145deg, #e8e8e8, #b8c0cc, #d4d4d4);
+            box-shadow: 0 0 15px rgba(184, 192, 204, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Бронза - 3 место */
+        .podium__item--bronze .podium__avatar {
+            background: linear-gradient(145deg, #cd7f32, #8b5a2b, #cd7f32);
+            box-shadow: 0 0 15px rgba(205, 127, 50, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+        }
+
+        .podium__crown {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 22px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            animation: crownBounce 1s ease-in-out infinite;
+        }
+
+        @keyframes crownBounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-3px); }
+        }
+
+        .podium__rank {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1a1a2e;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
         }
 
         .podium__name {
-            font-weight: 600;
-            font-size: 14px;
+            font-weight: 700;
+            font-size: 13px;
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
+            max-width: 100%;
+            padding: 0 4px;
         }
 
         .podium__meta {
-            margin-top: 4px;
-            font-size: 12px;
+            margin-top: 2px;
+            font-size: 11px;
             color: var(--muted);
+            opacity: 0.8;
         }
 
-        .podium__score { margin-top: 4px; font-size: 13px; color: var(--muted); }
+        .podium__score {
+            margin-top: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .podium__item--gold .podium__score { color: var(--gold); background: rgba(255, 204, 102, 0.15); }
+        .podium__item--silver .podium__score { color: var(--silver); background: rgba(182, 190, 205, 0.15); }
+        .podium__item--bronze .podium__score { color: var(--bronze); background: rgba(197, 154, 106, 0.15); }
+
+        .podium__pedestal {
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .podium__pedestal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        }
+
+        .podium__item--gold .podium__pedestal {
+            height: 80px;
+            background: linear-gradient(180deg, rgba(255, 204, 102, 0.25) 0%, rgba(255, 179, 71, 0.1) 100%);
+            border: 1px solid rgba(255, 204, 102, 0.3);
+            border-bottom: none;
+        }
+
+        .podium__item--silver .podium__pedestal {
+            height: 55px;
+            background: linear-gradient(180deg, rgba(182, 190, 205, 0.2) 0%, rgba(143, 150, 167, 0.08) 100%);
+            border: 1px solid rgba(182, 190, 205, 0.25);
+            border-bottom: none;
+        }
+
+        .podium__item--bronze .podium__pedestal {
+            height: 35px;
+            background: linear-gradient(180deg, rgba(197, 154, 106, 0.2) 0%, rgba(140, 107, 63, 0.08) 100%);
+            border: 1px solid rgba(197, 154, 106, 0.25);
+            border-bottom: none;
+        }
+
+        /* Порядок: 2-1-3 визуально */
+        .podium__item:nth-child(1) { order: 2; } /* Золото в центре */
+        .podium__item:nth-child(2) { order: 1; } /* Серебро слева */
+        .podium__item:nth-child(3) { order: 3; } /* Бронза справа */
 
         .section-title {
             font-size: 12px;
@@ -258,7 +380,11 @@
 
     <script>
         const API_URL = 'https://tspp2026.vercel.app/api/rating';
-        const CACHE_KEY = 'puzzlebot-rating-cache-v1';
+        const CACHE_KEY = 'puzzlebot-rating-cache-v2';
+        
+        // NocoDB для загрузки филиалов
+        const NOCODB_URL = 'https://nocodb.puzzlebot.top';
+        const NOCODB_TOKEN = 'avKy8Ov_rNMIRMf-hgneulQKWsrXMhqmdqfc6uR1';
 
         const ui = {
             content: document.getElementById('content'),
@@ -295,19 +421,14 @@
             } catch (_) { /* ignore */ }
         };
 
-        const medalStyle = [
-            'background: linear-gradient(135deg, var(--gold), #ffb347); color: #0f1116;',
-            'background: linear-gradient(135deg, var(--silver), #8f96a7); color: #0f1116;',
-            'background: linear-gradient(135deg, var(--bronze), #8c6b3f); color: #0f1116;'
-        ];
-
         const skeletonPodium = () => `
             <div class="podium">
-                ${[...Array(3)].map(() => `
-                    <div class="podium__item">
-                        <div class="podium__medal skeleton"></div>
-                        <div class="podium__name skeleton" style="height:14px;"></div>
-                        <div class="podium__score skeleton" style="height:12px; margin-top:6px;"></div>
+                ${['silver', 'gold', 'bronze'].map((place, i) => `
+                    <div class="podium__item podium__item--${place}" style="opacity: 0.5;">
+                        <div class="podium__avatar skeleton" style="width:56px;height:56px;border-radius:50%;"></div>
+                        <div class="podium__name skeleton" style="height:14px;width:70%;margin:8px auto 0;"></div>
+                        <div class="podium__score skeleton" style="height:20px;width:50px;margin-top:6px;border-radius:10px;"></div>
+                        <div class="podium__pedestal"></div>
                     </div>
                 `).join('')}
             </div>
@@ -359,14 +480,20 @@
             let html = '';
 
             if (podium.length) {
+                const placeClass = ['gold', 'silver', 'bronze'];
+                const placeEmoji = ['👑', '', ''];
                 html += '<div class="podium">';
                 podium.forEach((item, idx) => {
                     html += `
-                        <div class="podium__item">
-                            <div class="podium__medal" style="${medalStyle[idx] || medalStyle[1]}">${idx + 1}</div>
+                        <div class="podium__item podium__item--${placeClass[idx] || 'bronze'}">
+                            <div class="podium__avatar">
+                                ${placeEmoji[idx] ? `<span class="podium__crown">${placeEmoji[idx]}</span>` : ''}
+                                <span class="podium__rank">${idx + 1}</span>
+                            </div>
                             <div class="podium__name" title="${item.fio}">${shortName(item.fio)}</div>
-                            ${item.filial ? `<div class="podium__meta">${item.filial}</div>` : ''}
-                            <div class="podium__score">${item.score} баллов</div>
+                            ${item.filial && item.filial.trim() ? `<div class="podium__meta">${item.filial}</div>` : ''}
+                            <div class="podium__score">${item.score} ⭐</div>
+                            <div class="podium__pedestal"></div>
                         </div>
                     `;
                 });
@@ -387,7 +514,7 @@
                             <div class="row__rank">${rank}</div>
                             <div>
                                 <div class="row__name" title="${item.fio}">${shortName(item.fio)}</div>
-                                ${item.filial ? `<div class="row__meta">${item.filial}</div>` : ''}
+                                ${item.filial && item.filial.trim() ? `<div class="row__meta">${item.filial}</div>` : ''}
                             </div>
                             <div class="row__score">${item.score}</div>
                         </div>
@@ -410,25 +537,78 @@
                 let filial = (item.filial || item.branch || item.city || item.location || item.place || '').trim();
                 if (!filial) {
                     const key = Object.keys(item).find(k => /filial|филиал/i.test(k));
-                    if (key) filial = String(item[key]).trim();
+                    if (key) filial = String(item[key] || '').trim();
                 }
                 const score = Number.isFinite(Number(item.score)) ? Number(item.score) : 0;
-                return { fio, filial, score };
+                return { fio, filial: filial || '', score };
             })
             .sort((a, b) => b.score - a.score);
 
         const saveCache = (payload) => { try { localStorage.setItem(CACHE_KEY, JSON.stringify(payload)); } catch (_) {} };
         const readCache = () => { try { const raw = localStorage.getItem(CACHE_KEY); return raw ? JSON.parse(raw) : null; } catch (_) { return null; } };
 
-        const state = { data: [], loading: true, error: '', updatedAt: null };
+        const state = { data: [], loading: true, error: '', updatedAt: null, filialMap: {} };
+
+        // Загрузка филиалов напрямую с NocoDB (как в index.html)
+        const loadFilials = async () => {
+            try {
+                const headers = { 'xc-token': NOCODB_TOKEN };
+                
+                // 1. Получаем проекты
+                const projRes = await fetch(NOCODB_URL + '/api/v1/db/meta/projects', { headers });
+                const projects = (await projRes.json()).list || [];
+                const projectId = projects.find(p => p.title?.toLowerCase().includes('телеграм'))?.id || projects[0]?.id;
+                if (!projectId) return {};
+                
+                // 2. Получаем таблицы
+                const tabRes = await fetch(NOCODB_URL + '/api/v1/db/meta/projects/' + projectId + '/tables', { headers });
+                const tables = (await tabRes.json()).list || [];
+                
+                // 3. Данные из таблицы "Сотрудники"
+                const empTableId = tables.find(t => t.title === 'Сотрудники')?.id;
+                const filialMap = {};
+                
+                if (empTableId) {
+                    const empRes = await fetch(NOCODB_URL + '/api/v1/db/data/noco/' + projectId + '/' + empTableId, { headers });
+                    const employees = (await empRes.json()).list || [];
+                    employees.forEach(emp => {
+                        const fio = emp['ФИО сотрудника'] || emp['ФИО'] || '';
+                        const filial = emp['Филиал сотрудника'] || emp['Филиал'] || '';
+                        if (fio && filial) {
+                            filialMap[String(fio).trim()] = String(filial).trim();
+                        }
+                    });
+                }
+                
+                console.log('Загружено филиалов:', Object.keys(filialMap).length);
+                return filialMap;
+            } catch (e) {
+                console.warn('Не удалось загрузить филиалы:', e);
+                return {};
+            }
+        };
 
         const fetchRating = async (withSkeleton = false) => {
             if (withSkeleton) { state.loading = true; state.error = ''; render(state); }
             try {
-                const res = await fetch(API_URL, { cache: 'no-store' });
-                const json = await res.json();
-                if (!res.ok || !json.success) throw new Error(json.error || 'Ошибка загрузки');
-                state.data = parseData(json.data || []);
+                // Загружаем данные рейтинга и филиалы параллельно
+                const [ratingRes, filialMap] = await Promise.all([
+                    fetch(API_URL, { cache: 'no-store' }).then(r => r.json()),
+                    Object.keys(state.filialMap).length ? Promise.resolve(state.filialMap) : loadFilials()
+                ]);
+                
+                if (!ratingRes.success) throw new Error(ratingRes.error || 'Ошибка загрузки');
+                
+                state.filialMap = filialMap;
+                
+                // Добавляем филиалы к данным
+                const dataWithFilials = (ratingRes.data || []).map(item => ({
+                    ...item,
+                    filial: filialMap[String(item.fio || '').trim()] || item.filial || ''
+                }));
+                
+                state.data = parseData(dataWithFilials);
+                console.log('Филиалы:', state.data.slice(0, 5).map(d => ({ fio: d.fio, filial: d.filial || 'НЕТ' })));
                 state.loading = false;
                 state.error = '';
                 state.updatedAt = Date.now();
@@ -444,7 +624,18 @@
         const init = () => {
             themeFromTelegram();
             loadSticker();
-            const cached = readCache();
+            let cached = readCache();
+            
+            // Очистка старого кэша без филиалов
+            if (cached?.data?.length) {
+                const hasFilial = cached.data.some(item => item.filial);
+                if (!hasFilial) {
+                    console.log('Очистка кэша без филиалов');
+                    localStorage.removeItem(CACHE_KEY);
+                    cached = null;
+                }
+            }
+            
             if (cached?.data?.length) {
                 state.data = cached.data;
                 state.loading = false;

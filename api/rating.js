@@ -74,13 +74,41 @@ module.exports = async (req, res) => {
     }
     if (!tableId) throw new Error('Table "День 1" not found');
 
-    // 3. Получаем данные
+    // 3. Получаем данные из таблицы "Сотрудники" для филиалов
+    const filialMap = {};
+    let empTableId = null;
+    for (const t of tables) {
+      if (t.title === 'Сотрудники') {
+        empTableId = t.id;
+        break;
+      }
+    }
+    
+    if (empTableId) {
+      try {
+        const empRes = await httpsGet(`${NOCODB_URL}/api/v1/db/data/noco/${projectId}/${empTableId}`, headers);
+        if (empRes.ok && empRes.data) {
+          const employees = empRes.data.list || [];
+          employees.forEach(emp => {
+            const fio = emp['ФИО сотрудника'] || emp['ФИО'] || '';
+            const filial = emp['Филиал сотрудника'] || emp['Филиал'] || '';
+            if (fio && filial) {
+              filialMap[String(fio).trim()] = String(filial).trim();
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('Не удалось загрузить филиалы:', e.message);
+      }
+    }
+
+    // 4. Получаем данные
     const dataRes = await httpsGet(`${NOCODB_URL}/api/v1/db/data/noco/${projectId}/${tableId}`, headers);
     if (!dataRes.ok) throw new Error(`Data: ${dataRes.status}`);
     
     const records = dataRes.data.list || [];
     
-    // 4. Обрабатываем данные
+    // 5. Обрабатываем данные
     const result = records
       .map(r => {
         let fio = r['ФИО сотрудника'] || '';
@@ -92,8 +120,10 @@ module.exports = async (req, res) => {
             }
           }
         }
+        fio = String(fio).trim();
+        const filial = filialMap[fio] || '';
         const score = parseFloat(r['Оценка'] || r['оценка'] || 0) || 0;
-        return { fio: String(fio).trim(), score };
+        return { fio, filial, score };
       })
       .filter(x => x.fio)
       .sort((a, b) => b.score - a.score);
