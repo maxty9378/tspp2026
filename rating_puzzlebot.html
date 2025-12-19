@@ -518,13 +518,22 @@
     </style>
 </head>
 <body>
+    <!-- ПРОСТОЙ ТЕСТ - показывает URL сразу при загрузке -->
+    <div id="simple-debug" style="background: #ff6b6b; color: white; padding: 15px; margin: 10px; border-radius: 10px; font-family: monospace; font-size: 14px;">
+        <b>🔴 DEBUG v7</b><br>
+        <span id="debug-url">Загрузка...</span>
+    </div>
+    <script>
+        document.getElementById('debug-url').textContent = 'URL: ' + window.location.href;
+    </script>
+
     <div class="app">
         <header class="hero">
             <div class="hero__meta">
                 <span class="hero__badge">Онлайн - марафон</span>
             </div>
             <h1 class="hero__title">Рейтинг участников</h1>
-            <p class="hero__subtitle" id="subtitle">v3 - Загрузка...</p>
+            <p class="hero__subtitle" id="subtitle">v7 - Загрузка...</p>
             <div id="sticker" class="hero__sticker"></div>
         </header>
 
