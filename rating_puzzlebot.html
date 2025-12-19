@@ -10,6 +10,14 @@
     <script src="https://unpkg.com/lottie-web@5.12.2/build/player/lottie.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        @font-face {
+            font-family: 'SNS';
+            src: url('SNS.OTF') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
         :root {
             --bg: transparent;
             --card: #11121a;
@@ -210,10 +218,11 @@
         }
 
         .podium__rank {
+            font-family: 'SNS', sans-serif;
             font-size: 24px;
-            font-weight: 800;
-            color: #1a1a2e;
-            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+            font-weight: normal;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             position: relative;
             z-index: 5;
             animation: rankAppear 0.4s ease-out forwards;
