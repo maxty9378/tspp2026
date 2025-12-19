@@ -110,7 +110,7 @@
             flex-direction: column;
             gap: 12px;
             padding: 12px 12px 16px;
-            background: var(--card);
+            background: #2c2c2e;
         }
 
         .podium {
@@ -151,6 +151,12 @@
             font-size: 28px;
             margin-bottom: 8px;
             z-index: 2;
+        }
+
+        .podium__sticker-small {
+            position: absolute;
+            inset: -8px;
+            z-index: 1;
         }
 
         /* Золото - 1 место */
@@ -226,6 +232,8 @@
             font-weight: 800;
             color: #1a1a2e;
             text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+            position: relative;
+            z-index: 2;
         }
 
         .podium__name {
@@ -324,7 +332,11 @@
             gap: 10px;
             padding: 10px 12px;
             border-bottom: 1px solid var(--line);
-            background: var(--card);
+            background: #292929;
+        }
+
+        .row--high {
+            background: #292929;
         }
 
         .row:last-child { border-bottom: none; }
@@ -450,6 +462,25 @@
             } catch (_) { /* ignore */ }
         };
 
+        let goldStickerAnimation = null;
+        const loadGoldSticker = () => {
+            if (!window.lottie) return;
+            const el = document.getElementById('gold-sticker');
+            if (!el) return;
+            el.innerHTML = '';
+            if (goldStickerAnimation) {
+                goldStickerAnimation.destroy();
+                goldStickerAnimation = null;
+            }
+            goldStickerAnimation = window.lottie.loadAnimation({
+                container: el,
+                renderer: 'svg',
+                loop: true,
+                autoplay: true,
+                path: 'AnimatedSticker-01.json'
+            });
+        };
+
         const skeletonPodium = () => `
             <div class="podium">
                 ${['silver', 'gold', 'bronze'].map((place, i) => `
@@ -510,33 +541,6 @@
 
             if (podium.length) {
                 const placeClass = ['gold', 'silver', 'bronze'];
-                const crownSvg = `<svg viewBox="0 0 36 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="crownGold" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#FFE066"/>
-                            <stop offset="30%" style="stop-color:#FFD700"/>
-                            <stop offset="50%" style="stop-color:#FFC107"/>
-                            <stop offset="70%" style="stop-color:#FFD700"/>
-                            <stop offset="100%" style="stop-color:#FFE066"/>
-                        </linearGradient>
-                        <linearGradient id="crownHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.6"/>
-                            <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0"/>
-                        </linearGradient>
-                        <filter id="crownGlow">
-                            <feGaussianBlur stdDeviation="1" result="blur"/>
-                            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                    </defs>
-                    <path d="M3 24L6 10L12 16L18 6L24 16L30 10L33 24H3Z" fill="url(#crownGold)" filter="url(#crownGlow)"/>
-                    <path d="M3 24L6 10L12 16L18 6L24 16L30 10L33 24H3Z" fill="url(#crownHighlight)" opacity="0.4"/>
-                    <circle cx="18" cy="7" r="2.5" fill="#FF6B6B"/>
-                    <circle cx="6" cy="11" r="2" fill="#4ECDC4"/>
-                    <circle cx="30" cy="11" r="2" fill="#4ECDC4"/>
-                    <path d="M5 24H31V26C31 27 30 28 29 28H7C6 28 5 27 5 26V24Z" fill="url(#crownGold)"/>
-                    <rect x="5" y="24" width="26" height="1" fill="rgba(255,255,255,0.5)"/>
-                </svg>`;
-                
                 html += '<div class="podium">';
                 podium.forEach((item, idx) => {
                     html += `
@@ -580,6 +584,7 @@
             html += '</div>';
 
             ui.content.innerHTML = html;
+            loadGoldSticker();
             if (ui.subtitle) {
                 const ts = new Date();
                 ui.subtitle.textContent = `Обновлено в ${ts.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
