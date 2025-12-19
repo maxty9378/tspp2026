@@ -328,7 +328,7 @@
 
         const shortName = (fio = '') => {
             const parts = fio.trim().split(/\s+/);
-            if (parts.length >= 2) return `${parts[1]} ${parts[0][0] || ''}.`;
+            if (parts.length >= 2) return `${parts[0]} ${parts[1][0] || ''}.`;
             return fio || 'Без имени';
         };
 
@@ -407,7 +407,11 @@
         const parseData = (raw = []) => raw
             .map((item, idx) => {
                 const fio = (item.fio || `Участник ${idx + 1}`).trim();
-                const filial = (item.filial || item.branch || item.city || item.location || item.place || '').trim();
+                let filial = (item.filial || item.branch || item.city || item.location || item.place || '').trim();
+                if (!filial) {
+                    const key = Object.keys(item).find(k => /filial|филиал/i.test(k));
+                    if (key) filial = String(item[key]).trim();
+                }
                 const score = Number.isFinite(Number(item.score)) ? Number(item.score) : 0;
                 return { fio, filial, score };
             })
