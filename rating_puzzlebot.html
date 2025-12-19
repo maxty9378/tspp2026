@@ -44,7 +44,16 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        body { overflow-x: hidden; }
+        html, body { 
+            overflow-x: hidden;
+            -ms-overflow-style: none;  /* IE и Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+            display: none;  /* Chrome, Safari, Opera */
+        }
 
         .app {
             width: 100%;
@@ -399,6 +408,62 @@
 
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
+        /* Блок "Ваше место" */
+        .my-place {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, rgba(0, 163, 128, 0.15) 0%, rgba(0, 201, 154, 0.08) 100%);
+            border: 1px solid rgba(0, 163, 128, 0.3);
+            border-radius: 14px;
+            margin-bottom: 8px;
+        }
+
+        .my-place__label {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .my-place__value {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .my-place__rank {
+            font-family: 'SNS', sans-serif;
+            font-size: 28px;
+            font-weight: normal;
+            color: #00a380;
+            text-shadow: 0 2px 8px rgba(0, 163, 128, 0.3);
+        }
+
+        .my-place__name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* Подсветка текущего пользователя в списке */
+        .row--current {
+            background: linear-gradient(135deg, rgba(0, 163, 128, 0.12) 0%, rgba(0, 201, 154, 0.06) 100%);
+            border: 1px solid rgba(0, 163, 128, 0.25);
+            border-radius: 12px;
+            margin: 4px 0;
+        }
+
+        .row--current .row__rank {
+            background: #00a380;
+            color: #fff;
+            border-color: #00a380;
+        }
+
+        .row--current .row__name {
+            color: #00a380;
+            font-weight: 700;
+        }
+
         @media (max-width: 520px) {
             .content { padding: 10px 10px 14px; }
             .podium { gap: 6px; }
@@ -523,7 +588,7 @@
         };
 
         const render = (state) => {
-            const { data, loading, error } = state;
+            const { data, loading, error, currentUserIndex, currentUserFio } = state;
 
             if (loading && !data.length) {
                 ui.content.innerHTML = skeletonPodium() + skeletonList(6);
@@ -542,18 +607,36 @@
 
             let html = '';
 
+            // Блок "Ваше место" если пользователь найден
+            if (currentUserIndex >= 0) {
+                const userScore = data[currentUserIndex]?.score || 0;
+                html += `
+                    <div class="my-place">
+                        <div>
+                            <div class="my-place__label">Ваше место в рейтинге</div>
+                            <div class="my-place__name">${shortName(currentUserFio)}</div>
+                        </div>
+                        <div class="my-place__value">
+                            <span class="my-place__rank">#${currentUserIndex + 1}</span>
+                            <span style="font-size: 14px; color: var(--muted);">${userScore} ⭐</span>
+                        </div>
+                    </div>
+                `;
+            }
+
             if (podium.length) {
                 const placeClass = ['gold', 'silver', 'bronze'];
                 
                 html += '<div class="podium">';
                 podium.forEach((item, idx) => {
+                    const isCurrent = idx === currentUserIndex;
                     html += `
-                        <div class="podium__item podium__item--${placeClass[idx] || 'bronze'}">
+                        <div class="podium__item podium__item--${placeClass[idx] || 'bronze'}${isCurrent ? ' podium__item--current' : ''}">
                             <div class="podium__avatar">
                                 ${idx === 0 ? `<div id="winner-sticker" class="podium__sticker"></div>` : ''}
                                 <span class="podium__rank">${idx + 1}</span>
                             </div>
-                            <div class="podium__name" title="${item.fio}">${shortName(item.fio)}</div>
+                            <div class="podium__name" title="${item.fio}">${shortName(item.fio)}${isCurrent ? ' (вы)' : ''}</div>
                             ${item.filial && item.filial.trim() ? `<div class="podium__meta">${item.filial}</div>` : ''}
                             <div class="podium__score">${item.score} ⭐</div>
                             <div class="podium__pedestal"></div>
@@ -572,11 +655,13 @@
                 const rows = rest.length ? rest : podium;
                 rows.forEach((item, idx) => {
                     const rank = podium.length ? idx + podium.length + 1 : idx + 1;
+                    const actualIndex = podium.length ? idx + podium.length : idx;
+                    const isCurrent = actualIndex === currentUserIndex;
                     html += `
-                        <div class="row ${classifyScore(item.score)}">
+                        <div class="row ${classifyScore(item.score)}${isCurrent ? ' row--current' : ''}">
                             <div class="row__rank">${rank}</div>
                             <div>
-                                <div class="row__name" title="${item.fio}">${shortName(item.fio)}</div>
+                                <div class="row__name" title="${item.fio}">${shortName(item.fio)}${isCurrent ? ' (вы)' : ''}</div>
                                 ${item.filial && item.filial.trim() ? `<div class="row__meta">${item.filial}</div>` : ''}
                             </div>
                             <div class="row__score">${item.score}</div>
@@ -611,10 +696,33 @@
         const saveCache = (payload) => { try { localStorage.setItem(CACHE_KEY, JSON.stringify(payload)); } catch (_) {} };
         const readCache = () => { try { const raw = localStorage.getItem(CACHE_KEY); return raw ? JSON.parse(raw) : null; } catch (_) { return null; } };
 
-        const state = { data: [], loading: true, error: '', updatedAt: null, filialMap: {} };
+        const state = { 
+            data: [], 
+            loading: true, 
+            error: '', 
+            updatedAt: null, 
+            filialMap: {},
+            tgUserMap: {},  // Карта: Telegram ID → табельный номер
+            currentUserIndex: -1,  // Позиция текущего пользователя
+            currentUserFio: ''  // ФИО текущего пользователя
+        };
 
-        // Загрузка филиалов напрямую с NocoDB (как в index.html)
-        const loadFilials = async () => {
+        // Получение Telegram ID текущего пользователя
+        const getTelegramUserId = () => {
+            const tg = window.Telegram?.WebApp;
+            return tg?.initDataUnsafe?.user?.id || null;
+        };
+
+        // Haptic Feedback
+        const haptic = {
+            light: () => window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('light'),
+            medium: () => window.Telegram?.WebApp?.HapticFeedback?.impactOccurred?.('medium'),
+            success: () => window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred?.('success'),
+            error: () => window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred?.('error')
+        };
+
+        // Загрузка филиалов и регистрации с NocoDB
+        const loadExtraData = async () => {
             try {
                 const headers = { 'xc-token': NOCODB_TOKEN };
                 
@@ -622,16 +730,17 @@
                 const projRes = await fetch(NOCODB_URL + '/api/v1/db/meta/projects', { headers });
                 const projects = (await projRes.json()).list || [];
                 const projectId = projects.find(p => p.title?.toLowerCase().includes('телеграм'))?.id || projects[0]?.id;
-                if (!projectId) return {};
+                if (!projectId) return { filialMap: {}, tgUserMap: {} };
                 
                 // 2. Получаем таблицы
                 const tabRes = await fetch(NOCODB_URL + '/api/v1/db/meta/projects/' + projectId + '/tables', { headers });
                 const tables = (await tabRes.json()).list || [];
                 
-                // 3. Данные из таблицы "Сотрудники"
-                const empTableId = tables.find(t => t.title === 'Сотрудники')?.id;
                 const filialMap = {};
+                const tgUserMap = {};
                 
+                // 3. Данные из таблицы "Сотрудники" для филиалов
+                const empTableId = tables.find(t => t.title === 'Сотрудники')?.id;
                 if (empTableId) {
                     const empRes = await fetch(NOCODB_URL + '/api/v1/db/data/noco/' + projectId + '/' + empTableId, { headers });
                     const employees = (await empRes.json()).list || [];
@@ -644,44 +753,98 @@
                     });
                 }
                 
+                // 4. Данные из таблицы "Регистрация участника" для связи Telegram ID → табельный номер
+                const regTableId = tables.find(t => 
+                    t.title === 'Регистрация участника' || 
+                    t.title?.toLowerCase().includes('регистрац')
+                )?.id;
+                
+                if (regTableId) {
+                    const regRes = await fetch(NOCODB_URL + '/api/v1/db/data/noco/' + projectId + '/' + regTableId, { headers });
+                    const registrations = (await regRes.json()).list || [];
+                    registrations.forEach(reg => {
+                        const tgId = reg['ID TG USER'] || reg['id_tg_user'] || reg['tg_id'] || '';
+                        const tabNum = reg['Табельный номер'] || reg['tab_nomer'] || reg['Tab_nomer'] || '';
+                        const fio = reg['ФИО'] || reg['ФИО сотрудника'] || reg['fio'] || '';
+                        if (tgId) {
+                            tgUserMap[String(tgId).trim()] = {
+                                tabNum: String(tabNum).trim(),
+                                fio: String(fio).trim()
+                            };
+                        }
+                    });
+                    console.log('Загружено регистраций:', Object.keys(tgUserMap).length);
+                }
+                
                 console.log('Загружено филиалов:', Object.keys(filialMap).length);
-                return filialMap;
+                return { filialMap, tgUserMap };
             } catch (e) {
-                console.warn('Не удалось загрузить филиалы:', e);
-                return {};
+                console.warn('Не удалось загрузить данные:', e);
+                return { filialMap: {}, tgUserMap: {} };
             }
         };
 
         const fetchRating = async (withSkeleton = false) => {
             if (withSkeleton) { state.loading = true; state.error = ''; render(state); }
             try {
-                // Загружаем данные рейтинга и филиалы параллельно
-                const [ratingRes, filialMap] = await Promise.all([
+                // Загружаем данные рейтинга и дополнительные данные параллельно
+                const needExtraData = !Object.keys(state.filialMap).length;
+                const [ratingRes, extraData] = await Promise.all([
                     fetch(API_URL, { cache: 'no-store' }).then(r => r.json()),
-                    Object.keys(state.filialMap).length ? Promise.resolve(state.filialMap) : loadFilials()
+                    needExtraData ? loadExtraData() : Promise.resolve({ filialMap: state.filialMap, tgUserMap: state.tgUserMap })
                 ]);
                 
                 if (!ratingRes.success) throw new Error(ratingRes.error || 'Ошибка загрузки');
                 
-                state.filialMap = filialMap;
+                state.filialMap = extraData.filialMap;
+                state.tgUserMap = extraData.tgUserMap;
                 
                 // Добавляем филиалы к данным
                 const dataWithFilials = (ratingRes.data || []).map(item => ({
                     ...item,
-                    filial: filialMap[String(item.fio || '').trim()] || item.filial || ''
+                    filial: state.filialMap[String(item.fio || '').trim()] || item.filial || ''
                 }));
                 
                 state.data = parseData(dataWithFilials);
-                console.log('Филиалы:', state.data.slice(0, 5).map(d => ({ fio: d.fio, filial: d.filial || 'НЕТ' })));
+                
+                // Поиск текущего пользователя по Telegram ID
+                const tgUserId = getTelegramUserId();
+                state.currentUserIndex = -1;
+                state.currentUserFio = '';
+                
+                if (tgUserId && state.tgUserMap[tgUserId]) {
+                    const userData = state.tgUserMap[tgUserId];
+                    // Ищем по ФИО из регистрации
+                    if (userData.fio) {
+                        const searchFio = userData.fio.toLowerCase().trim();
+                        state.currentUserIndex = state.data.findIndex(d => {
+                            const dataFio = d.fio.toLowerCase().trim();
+                            return dataFio === searchFio || 
+                                   dataFio.includes(searchFio) || 
+                                   searchFio.includes(dataFio);
+                        });
+                        if (state.currentUserIndex >= 0) {
+                            state.currentUserFio = state.data[state.currentUserIndex].fio;
+                        }
+                    }
+                    console.log('Текущий пользователь:', { tgUserId, userData, index: state.currentUserIndex });
+                }
+                
                 state.loading = false;
                 state.error = '';
                 state.updatedAt = Date.now();
                 saveCache({ data: state.data, updatedAt: state.updatedAt });
                 render(state);
+                
+                // Haptic feedback при успешной загрузке
+                haptic.success();
             } catch (err) {
                 state.loading = false;
                 state.error = err.message || 'Ошибка';
                 render(state);
+                
+                // Haptic feedback при ошибке
+                haptic.error();
             }
         };
 
