@@ -524,7 +524,7 @@
                 <span class="hero__badge">Онлайн - марафон</span>
             </div>
             <h1 class="hero__title">Рейтинг участников</h1>
-            <p class="hero__subtitle" id="subtitle">Обновлено в ...</p>
+            <p class="hero__subtitle" id="subtitle">v3 - Загрузка...</p>
             <div id="sticker" class="hero__sticker"></div>
         </header>
 
@@ -659,39 +659,38 @@
             
             if (isDebug) {
                 const isFound = currentUserIndex >= 0;
+                const tgUserData = tgUserId && state.tgUserMap ? state.tgUserMap[tgUserId] : null;
                 html += `
                     <div class="debug-block ${isFound ? 'success' : ''}">
-                        <div class="debug-title">🔍 Отладка определения пользователя</div>
+                        <div class="debug-title">🔍 Отладка (v2)</div>
                         <div class="debug-row">
-                            <span class="debug-label">Telegram WebApp:</span>
-                            <span class="debug-value">${tg ? '✅ Доступен' : '❌ Недоступен'}</span>
+                            <span class="debug-label">WebApp:</span>
+                            <span class="debug-value">${tg ? '✅' : '❌'}</span>
                         </div>
                         <div class="debug-row">
-                            <span class="debug-label">TG User ID:</span>
-                            <span class="debug-value">${tgUserId || '❌ Не найден'}</span>
+                            <span class="debug-label">TG ID:</span>
+                            <span class="debug-value">${tgUserId || '❌'}</span>
                         </div>
                         <div class="debug-row">
                             <span class="debug-label">ФИО:</span>
-                            <span class="debug-value">${userFullName || '❌ Не найдено'}</span>
+                            <span class="debug-value">${userFullName || '❌'}</span>
                         </div>
                         <div class="debug-row">
-                            <span class="debug-label">URL:</span>
-                            <span class="debug-value" style="font-size: 9px;">${window.location.search || '(пусто)'}</span>
+                            <span class="debug-label">URL params:</span>
+                            <span class="debug-value" style="font-size: 9px;">${window.location.search || '(нет)'}</span>
                         </div>
                         <div class="debug-row">
-                            <span class="debug-label">Найден в рейтинге:</span>
-                            <span class="debug-value">${isFound ? '✅ #' + (currentUserIndex + 1) : '❌ Нет'}</span>
+                            <span class="debug-label">В рейтинге:</span>
+                            <span class="debug-value">${isFound ? '✅ #' + (currentUserIndex + 1) : '❌'}</span>
                         </div>
-                        ${tg?.initDataUnsafe?.user ? `
                         <div class="debug-row">
-                            <span class="debug-label">TG User:</span>
-                            <span class="debug-value">${tg.initDataUnsafe.user.first_name} ${tg.initDataUnsafe.user.last_name || ''}</span>
+                            <span class="debug-label">Регистраций:</span>
+                            <span class="debug-value">${Object.keys(state.tgUserMap || {}).length}</span>
                         </div>
-                        ` : ''}
-                        ${state.tgUserMap[tgUserId] ? `
+                        ${tgUserData ? `
                         <div class="debug-row">
-                            <span class="debug-label">В регистрации:</span>
-                            <span class="debug-value">${state.tgUserMap[tgUserId].fio || 'есть'}</span>
+                            <span class="debug-label">В рег-ции:</span>
+                            <span class="debug-value">${tgUserData.fio || 'есть'}</span>
                         </div>
                         ` : ''}
                     </div>
