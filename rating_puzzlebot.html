@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0b0b0f">
+    <title>Рейтинг — PuzzleBot</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg: #0b0b0f;
+            --card: #11121a;
+            --card-strong: #161823;
+            --text: #f6f7fb;
+            --muted: #9ea3b5;
+            --line: rgba(255, 255, 255, 0.08);
+            --accent: #2f8cff;
+            --accent-2: #2bd97e;
+            --gold: #ffcc66;
+            --silver: #b6becd;
+            --bronze: #c59a6a;
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            min-height: 100vh;
+            min-height: 100dvh;
+            background: radial-gradient(circle at 20% 20%, rgba(47, 140, 255, 0.08), transparent 35%),
+                        radial-gradient(circle at 80% 0%, rgba(43, 217, 126, 0.08), transparent 25%),
+                        var(--bg);
+            color: var(--text);
+            font-family: "SF Pro Display", "Inter", -apple-system, system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            padding: calc(10px + var(--safe-top)) 16px calc(16px + var(--safe-bottom));
+            overflow-x: hidden;
+        }
+
+        .app {
+            max-width: 640px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .hero {
+            border-radius: 18px;
+            background: linear-gradient(145deg, rgba(47, 140, 255, 0.12), rgba(17, 18, 26, 0.95));
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 18px 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .hero__meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .hero__badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .hero__title {
+            font-size: 26px;
+            font-weight: 700;
+            margin-top: 8px;
+            letter-spacing: -0.2px;
+        }
+
+        .hero__subtitle {
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .podium {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .podium__item {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 12px 10px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .podium__medal {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            margin: 0 auto 10px;
+            display: grid;
+            place-items: center;
+            font-size: 22px;
+            font-weight: 700;
+            color: #0b0b0f;
+        }
+
+        .podium__name {
+            font-weight: 600;
+            font-size: 15px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .podium__score {
+            margin-top: 6px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .list {
+            background: var(--card-strong);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 44px 1fr auto;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .row:last-child {
+            border-bottom: none;
+        }
+
+        .row__rank {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: var(--card);
+            border: 1px solid var(--line);
+            display: grid;
+            place-items: center;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .row__name {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .row__score {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 12px;
+            background: rgba(47, 140, 255, 0.16);
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .row--high .row__score {
+            background: rgba(43, 217, 126, 0.16);
+            color: var(--accent-2);
+        }
+
+        .row--low .row__score {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--muted);
+        }
+
+        .section-title {
+            font-size: 12px;
+            letter-spacing: 0.4px;
+            color: var(--muted);
+            text-transform: uppercase;
+            padding: 0 4px;
+        }
+
+        .state {
+            padding: 40px 16px;
+            text-align: center;
+            background: var(--card-strong);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            color: var(--muted);
+        }
+
+        .skeleton {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.06), rgba(255,255,255,0.04));
+            background-size: 200% 100%;
+            animation: shimmer 1.2s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .stamp {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            background: var(--card);
+            border: 1px solid var(--line);
+        }
+
+        @media (max-width: 520px) {
+            .podium {
+                gap: 8px;
+            }
+            .podium__medal { width: 48px; height: 48px; }
+            .row {
+                grid-template-columns: 40px 1fr auto;
+                padding: 12px;
+            }
+            .row__name { font-size: 15px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { animation: none !important; transition: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header class="hero">
+            <div class="hero__meta">
+                <span class="hero__badge">Рейтинг</span>
+                <span id="status-text">Обновляем каждые 30с</span>
+            </div>
+            <h1 class="hero__title">Команда PuzzleBot</h1>
+            <p class="hero__subtitle">Живое обновление из NocoDB · WebApp Telegram</p>
+        </header>
+
+        <main class="content" id="content"></main>
+
+        <footer class="footer" id="footer" style="display:none;">
+            <div class="stamp" id="update-time">Обновление...</div>
+        </footer>
+    </div>
+
+    <script>
+        const API_URL = 'https://tspp2026.vercel.app/api/rating';
+        const CACHE_KEY = 'puzzlebot-rating-cache-v1';
+
+        const ui = {
+            content: document.getElementById('content'),
+            footer: document.getElementById('footer'),
+            updateTime: document.getElementById('update-time'),
+            status: document.getElementById('status-text')
+        };
+
+        const themeFromTelegram = () => {
+            const tg = window.Telegram?.WebApp;
+            if (!tg) return;
+            tg.ready();
+            tg.expand();
+            tg.disableVerticalSwipes?.();
+            const p = tg.themeParams || {};
+            const set = (k, v) => document.documentElement.style.setProperty(k, v);
+            set('--bg', p.bg_color || '#0b0b0f');
+            set('--card', p.secondary_bg_color || '#11121a');
+            set('--card-strong', p.bg_color ? p.bg_color : '#161823');
+            set('--text', p.text_color || '#f6f7fb');
+            set('--muted', p.hint_color || '#9ea3b5');
+            set('--accent', p.link_color || '#2f8cff');
+            set('--shadow', '0 8px 24px rgba(0,0,0,0.35)');
+            if (tg.setHeaderColor) tg.setHeaderColor('secondary_bg_color');
+        };
+
+        const medalStyle = [
+            `background: linear-gradient(135deg, var(--gold), #ffb347); color: #0b0b0f;`,
+            `background: linear-gradient(135deg, var(--silver), #8f96a7); color: #0b0b0f;`,
+            `background: linear-gradient(135deg, var(--bronze), #8c6b3f); color: #0b0b0f;`
+        ];
+
+        const skeletonPodium = () => `
+            <div class="podium">
+                ${[...Array(3)].map(() => `
+                    <div class="podium__item">
+                        <div class="podium__medal skeleton"></div>
+                        <div class="podium__name skeleton" style="height:16px;"></div>
+                        <div class="podium__score skeleton" style="height:14px; margin-top:8px;"></div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        const skeletonList = (rows = 4) => `
+            <div class="section-title">Список участников</div>
+            <div class="list">
+                ${[...Array(rows)].map(() => `
+                    <div class="row">
+                        <div class="row__rank skeleton"></div>
+                        <div class="row__name skeleton" style="height:16px;"></div>
+                        <div class="row__score skeleton" style="width:60px; height:20px;"></div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        const shortName = (fio = '') => {
+            const parts = fio.trim().split(/\s+/);
+            if (parts.length >= 2) return `${parts[0]} ${parts[1][0] || ''}.`;
+            return fio || 'Без имени';
+        };
+
+        const formatDate = (ts) => {
+            if (!ts) return '—';
+            return new Intl.DateTimeFormat('ru-RU', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            }).format(ts);
+        };
+
+        const classifyScore = (score) => {
+            if (score >= 4) return 'row--high';
+            if (score <= 1) return 'row--low';
+            return '';
+        };
+
+        const render = (state) => {
+            const { data, loading, error, updatedAt } = state;
+
+            if (loading && !data.length) {
+                ui.content.innerHTML = skeletonPodium() + skeletonList(6);
+                ui.footer.style.display = 'none';
+                ui.status.textContent = 'Загружаем рейтинг...';
+                return;
+            }
+
+            if (error && !data.length) {
+                ui.content.innerHTML = `<div class="state">Не удалось загрузить рейтинг. Потяните вниз, чтобы обновить.</div>`;
+                ui.footer.style.display = 'none';
+                ui.status.textContent = 'Ошибка загрузки';
+                return;
+            }
+
+            const podium = data.slice(0, 3);
+            const rest = data.slice(3);
+
+            let html = '';
+
+            if (podium.length) {
+                html += '<div class="podium">';
+                podium.forEach((item, idx) => {
+                    html += `
+                        <div class="podium__item">
+                            <div class="podium__medal" style="${medalStyle[idx] || medalStyle[1]}">${idx + 1}</div>
+                            <div class="podium__name" title="${item.fio}">${shortName(item.fio)}</div>
+                            <div class="podium__score">${item.score} баллов</div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            html += '<div class="section-title">Список участников</div>';
+            html += '<div class="list">';
+
+            if (!rest.length && podium.length === 0) {
+                html += `<div class="state" style="border:none;">Участников пока нет</div>`;
+            } else {
+                const rows = rest.length ? rest : podium;
+                rows.forEach((item, idx) => {
+                    const rank = podium.length ? idx + podium.length + 1 : idx + 1;
+                    html += `
+                        <div class="row ${classifyScore(item.score)}">
+                            <div class="row__rank">${rank}</div>
+                            <div class="row__name" title="${item.fio}">${item.fio}</div>
+                            <div class="row__score">${item.score}</div>
+                        </div>
+                    `;
+                });
+            }
+
+            html += '</div>';
+
+            ui.content.innerHTML = html;
+            ui.footer.style.display = 'block';
+            ui.updateTime.textContent = `Обновлено: ${formatDate(updatedAt || Date.now())}`;
+            ui.status.textContent = 'Обновлено';
+        };
+
+        const parseData = (raw = []) => raw
+            .map((item, idx) => ({
+                fio: (item.fio || `Участник ${idx + 1}`).trim(),
+                score: Number.isFinite(Number(item.score)) ? Number(item.score) : 0
+            }))
+            .sort((a, b) => b.score - a.score);
+
+        const saveCache = (payload) => {
+            try { localStorage.setItem(CACHE_KEY, JSON.stringify(payload)); } catch (_) {}
+        };
+
+        const readCache = () => {
+            try {
+                const raw = localStorage.getItem(CACHE_KEY);
+                if (!raw) return null;
+                return JSON.parse(raw);
+            } catch (_) { return null; }
+        };
+
+        const state = { data: [], loading: true, error: '', updatedAt: null };
+
+        const fetchRating = async (withSkeleton = false) => {
+            if (withSkeleton) {
+                state.loading = true;
+                state.error = '';
+                render(state);
+            }
+            try {
+                const res = await fetch(API_URL, { cache: 'no-store' });
+                const json = await res.json();
+                if (!res.ok || !json.success) throw new Error(json.error || 'Ошибка загрузки');
+                state.data = parseData(json.data || []);
+                state.loading = false;
+                state.error = '';
+                state.updatedAt = Date.now();
+                saveCache({ data: state.data, updatedAt: state.updatedAt });
+                render(state);
+            } catch (err) {
+                state.loading = false;
+                state.error = err.message || 'Ошибка';
+                render(state);
+            }
+        };
+
+        const init = () => {
+            themeFromTelegram();
+            const cached = readCache();
+            if (cached?.data?.length) {
+                state.data = cached.data;
+                state.loading = false;
+                state.updatedAt = cached.updatedAt;
+                render(state);
+            } else {
+                render(state);
+            }
+            fetchRating(!cached);
+            setInterval(fetchRating, 30000);
+        };
+
+        init();
+    </script>
+</body>
+</html>
