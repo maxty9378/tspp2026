@@ -6,13 +6,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#ffffff">
-    <title>Рейтинг — PuzzleBot</title>
+    <title>Рейтинг — Технология эффективных продаж</title>
+    <script src="https://unpkg.com/lottie-web@5.12.2/build/player/lottie.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
             --bg: transparent;
-            --card: transparent;
-            --card-strong: transparent;
+            --card: #ffffff;
+            --card-strong: #f7f8fb;
             --text: #0f1116;
             --muted: #6f7480;
             --line: rgba(0, 0, 0, 0.08);
@@ -21,6 +22,7 @@
             --gold: #ffcc66;
             --silver: #b6becd;
             --bronze: #c59a6a;
+            --shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
         }
 
         * {
@@ -45,16 +47,45 @@
 
         .app {
             width: 100%;
+            max-width: 760px;
+            margin: 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
         }
 
         .hero {
-            padding: 12px 12px 4px;
+            position: relative;
+            padding: 18px 16px 12px;
+            background: linear-gradient(120deg, rgba(47, 140, 255, 0.16), rgba(43, 217, 126, 0.12) 60%, rgba(255, 255, 255, 0.92));
+        }
+
+        .hero__sticker {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 96px;
+            height: 96px;
+            pointer-events: none;
+            opacity: 0.9;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(47, 140, 255, 0.14), transparent 38%),
+                radial-gradient(circle at 80% 10%, rgba(43, 217, 126, 0.14), transparent 32%);
+            pointer-events: none;
         }
 
         .hero__meta {
+            position: relative;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -67,21 +98,27 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 6px 10px;
-            background: rgba(0, 0, 0, 0.04);
-            border-radius: 10px;
+            padding: 6px 12px;
+            background: #ffffff;
+            color: var(--text);
+            border-radius: 12px;
             border: 1px solid var(--line);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+            font-weight: 700;
+            letter-spacing: 0.2px;
         }
 
         .hero__title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-top: 6px;
-            letter-spacing: -0.2px;
+            position: relative;
+            font-size: 26px;
+            font-weight: 800;
+            margin-top: 10px;
+            letter-spacing: -0.3px;
         }
 
         .hero__subtitle {
-            margin-top: 4px;
+            position: relative;
+            margin-top: 6px;
             color: var(--muted);
             font-size: 14px;
         }
@@ -89,8 +126,9 @@
         .content {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            padding: 0 12px 12px;
+            gap: 12px;
+            padding: 12px 12px 16px;
+            background: var(--card);
         }
 
         .podium {
@@ -104,7 +142,7 @@
             border-radius: 12px;
             padding: 10px 8px;
             text-align: center;
-            background: var(--card);
+            background: #fff;
         }
 
         .podium__medal {
@@ -155,6 +193,7 @@
             gap: 10px;
             padding: 10px 12px;
             border-bottom: 1px solid var(--line);
+            background: #fff;
         }
 
         .row:last-child {
@@ -225,7 +264,7 @@
         }
 
         @media (max-width: 520px) {
-            .content { padding: 0 10px 10px; }
+            .content { padding: 10px 10px 14px; }
             .podium { gap: 6px; }
             .row { grid-template-columns: 34px 1fr auto; }
         }
@@ -239,11 +278,12 @@
     <div class="app">
         <header class="hero">
             <div class="hero__meta">
-                <span class="hero__badge">Рейтинг</span>
+                <span class="hero__badge">Марафон</span>
                 <span id="status-text">Обновляем каждые 30с</span>
             </div>
-            <h1 class="hero__title">Команда PuzzleBot</h1>
-            <p class="hero__subtitle">Живое обновление из NocoDB · WebApp Telegram</p>
+            <h1 class="hero__title">Технология эффективных продаж</h1>
+            <p class="hero__subtitle">Рейтинг участников · PuzzleBot</p>
+            <div id="sticker" class="hero__sticker"></div>
         </header>
 
         <main class="content" id="content"></main>
@@ -255,7 +295,8 @@
 
         const ui = {
             content: document.getElementById('content'),
-            status: document.getElementById('status-text')
+            status: document.getElementById('status-text'),
+            sticker: document.getElementById('sticker')
         };
 
         const themeFromTelegram = () => {
@@ -267,12 +308,27 @@
             const p = tg.themeParams || {};
             const set = (k, v) => document.documentElement.style.setProperty(k, v);
             set('--bg', p.bg_color ?? 'transparent');
-            set('--card', p.secondary_bg_color ?? 'transparent');
-            set('--card-strong', p.bg_color ?? 'transparent');
+            set('--card', p.secondary_bg_color ?? '#ffffff');
+            set('--card-strong', p.bg_color ?? '#f7f8fb');
             set('--text', p.text_color ?? '#0f1116');
             set('--muted', p.hint_color ?? '#6f7480');
             set('--accent', p.link_color ?? '#2f8cff');
             if (tg.setHeaderColor) tg.setHeaderColor('secondary_bg_color');
+        };
+
+        const loadSticker = () => {
+            if (!window.lottie || !ui.sticker) return;
+            try {
+                window.lottie.loadAnimation({
+                    container: ui.sticker,
+                    renderer: 'svg',
+                    loop: true,
+                    autoplay: true,
+                    path: 'AnimatedSticker.json'
+                });
+            } catch (_) {
+                // ignore sticker errors
+            }
         };
 
         const medalStyle = [
@@ -423,6 +479,7 @@
 
         const init = () => {
             themeFromTelegram();
+            loadSticker();
             const cached = readCache();
             if (cached?.data?.length) {
                 state.data = cached.data;
