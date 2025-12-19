@@ -633,15 +633,40 @@
 
         const render = (state) => {
             const { data, loading, error, currentUserIndex, currentUserFio } = state;
+            
+            // Отладочный блок - показываем ВСЕГДА первым делом
+            const isDebug = true;
+            let debugHtml = '';
+            
+            if (isDebug) {
+                try {
+                    const tabNumber = getTabNumber();
+                    const isFound = currentUserIndex >= 0;
+                    const hasTabNomer = data && data.length > 0 && data.some(d => d.tabNomer);
+                    debugHtml = `
+                        <div class="debug-block ${isFound ? 'success' : ''}" style="margin: 10px; padding: 12px; background: ${isFound ? 'rgba(0,163,128,0.2)' : 'rgba(255,100,100,0.2)'}; border-radius: 12px; font-size: 12px;">
+                            <div style="font-weight: bold; margin-bottom: 8px;">🔍 DEBUG v6</div>
+                            <div>?tab= <b>${tabNumber || '❌ не передан'}</b></div>
+                            <div>URL: ${window.location.search || '(пусто)'}</div>
+                            <div>Данных: ${data ? data.length : 0}</div>
+                            <div>API tabNomer: ${hasTabNomer ? '✅' : '❌'}</div>
+                            <div>Найден: ${isFound ? '✅ #' + (currentUserIndex + 1) + ' ' + currentUserFio : '❌'}</div>
+                            <div>Loading: ${loading}, Error: ${error || 'нет'}</div>
+                        </div>
+                    `;
+                } catch (e) {
+                    debugHtml = `<div style="margin: 10px; padding: 12px; background: red; color: white; border-radius: 8px;">DEBUG ERROR: ${e.message}</div>`;
+                }
+            }
 
             if (loading && !data.length) {
-                ui.content.innerHTML = skeletonPodium() + skeletonList(6);
+                ui.content.innerHTML = debugHtml + skeletonPodium() + skeletonList(6);
                 if (ui.subtitle) ui.subtitle.textContent = 'Загружаем...';
                 return;
             }
 
             if (error && !data.length) {
-                ui.content.innerHTML = `<div class="state">Не удалось загрузить рейтинг. Попробуйте обновить позже.</div>`;
+                ui.content.innerHTML = debugHtml + `<div class="state">Не удалось загрузить рейтинг. Попробуйте обновить позже.</div>`;
                 if (ui.subtitle) ui.subtitle.textContent = 'Ошибка загрузки';
                 return;
             }
@@ -649,45 +674,7 @@
             const podium = data.slice(0, 3);
             const rest = data.slice(3);
 
-            let html = '';
-
-            // Отладочный блок (можно убрать после тестирования)
-            const tabNumber = getTabNumber();
-            const tg = window.Telegram?.WebApp;
-            const isDebug = true; // Установите false чтобы скрыть
-            
-            if (isDebug) {
-                const isFound = currentUserIndex >= 0;
-                // Проверяем есть ли tabNomer в данных
-                const hasTabNomer = data.some(d => d.tabNomer);
-                html += `
-                    <div class="debug-block ${isFound ? 'success' : ''}">
-                        <div class="debug-title">🔍 v5</div>
-                        <div class="debug-row">
-                            <span class="debug-label">?tab=</span>
-                            <span class="debug-value">${tabNumber || '❌ не передан'}</span>
-                        </div>
-                        <div class="debug-row">
-                            <span class="debug-label">URL:</span>
-                            <span class="debug-value" style="font-size: 9px;">${window.location.search || '(пусто)'}</span>
-                        </div>
-                        <div class="debug-row">
-                            <span class="debug-label">API tabNomer:</span>
-                            <span class="debug-value">${hasTabNomer ? '✅' : '❌ нет в данных'}</span>
-                        </div>
-                        <div class="debug-row">
-                            <span class="debug-label">Найден:</span>
-                            <span class="debug-value">${isFound ? '✅ #' + (currentUserIndex + 1) : '❌'}</span>
-                        </div>
-                        ${isFound ? `
-                        <div class="debug-row">
-                            <span class="debug-label">ФИО:</span>
-                            <span class="debug-value">${currentUserFio}</span>
-                        </div>
-                        ` : ''}
-                    </div>
-                `;
-            }
+            let html = debugHtml;
 
             // Блок "Ваше место" если пользователь найден
             if (currentUserIndex >= 0) {
