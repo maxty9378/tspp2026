@@ -5,24 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#0a0a10">
     <title>Рейтинг — Технология эффективных продаж</title>
     <script src="https://unpkg.com/lottie-web@5.12.2/build/player/lottie.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg: transparent;
-            --card: #ffffff;
-            --card-strong: #f7f8fb;
-            --text: #0f1116;
-            --muted: #6f7480;
-            --line: rgba(0, 0, 0, 0.08);
-            --accent: #2f8cff;
-            --accent-2: #2bd97e;
+            --bg: #0a0a10;
+            --card: #11121a;
+            --card-strong: #161823;
+            --text: #f2f4fb;
+            --muted: #9398a8;
+            --line: rgba(255, 255, 255, 0.08);
+            --accent: #63a8ff;
+            --accent-2: #43e28f;
             --gold: #ffcc66;
             --silver: #b6becd;
             --bronze: #c59a6a;
-            --shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+            --shadow: 0 14px 50px rgba(0, 0, 0, 0.35);
         }
 
         * {
@@ -35,7 +35,10 @@
         html, body {
             min-height: 100vh;
             min-height: 100dvh;
-            background: var(--bg);
+            background:
+                radial-gradient(circle at 15% 20%, rgba(99, 168, 255, 0.08), transparent 32%),
+                radial-gradient(circle at 80% 0%, rgba(67, 226, 143, 0.08), transparent 28%),
+                var(--bg);
             color: var(--text);
             font-family: "Inter", -apple-system, system-ui, sans-serif;
             -webkit-font-smoothing: antialiased;
@@ -61,7 +64,7 @@
         .hero {
             position: relative;
             padding: 18px 16px 12px;
-            background: linear-gradient(120deg, rgba(47, 140, 255, 0.16), rgba(43, 217, 126, 0.12) 60%, rgba(255, 255, 255, 0.92));
+            background: linear-gradient(140deg, rgba(99, 168, 255, 0.2), rgba(67, 226, 143, 0.12) 50%, rgba(17, 18, 26, 0.9));
         }
 
         .hero__sticker {
@@ -99,11 +102,11 @@
             align-items: center;
             gap: 6px;
             padding: 6px 12px;
-            background: #ffffff;
-            color: var(--text);
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
             border-radius: 12px;
             border: 1px solid var(--line);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
             font-weight: 700;
             letter-spacing: 0.2px;
         }
@@ -142,7 +145,7 @@
             border-radius: 12px;
             padding: 10px 8px;
             text-align: center;
-            background: #fff;
+            background: var(--card-strong);
         }
 
         .podium__medal {
@@ -193,7 +196,7 @@
             gap: 10px;
             padding: 10px 12px;
             border-bottom: 1px solid var(--line);
-            background: #fff;
+            background: var(--card);
         }
 
         .row:last-child {
@@ -217,6 +220,12 @@
             text-overflow: ellipsis;
             font-size: 15px;
             font-weight: 500;
+        }
+
+        .row__meta {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 2px;
         }
 
         .row__score {
@@ -307,12 +316,12 @@
             tg.disableVerticalSwipes?.();
             const p = tg.themeParams || {};
             const set = (k, v) => document.documentElement.style.setProperty(k, v);
-            set('--bg', p.bg_color ?? 'transparent');
-            set('--card', p.secondary_bg_color ?? '#ffffff');
-            set('--card-strong', p.bg_color ?? '#f7f8fb');
-            set('--text', p.text_color ?? '#0f1116');
-            set('--muted', p.hint_color ?? '#6f7480');
-            set('--accent', p.link_color ?? '#2f8cff');
+            set('--bg', p.bg_color ?? '#0a0a10');
+            set('--card', p.secondary_bg_color ?? '#11121a');
+            set('--card-strong', p.bg_color ?? '#161823');
+            set('--text', p.text_color ?? '#f2f4fb');
+            set('--muted', p.hint_color ?? '#9398a8');
+            set('--accent', p.link_color ?? '#63a8ff');
             if (tg.setHeaderColor) tg.setHeaderColor('secondary_bg_color');
         };
 
@@ -401,6 +410,7 @@
                         <div class="podium__item">
                             <div class="podium__medal" style="${medalStyle[idx] || medalStyle[1]}">${idx + 1}</div>
                             <div class="podium__name" title="${item.fio}">${shortName(item.fio)}</div>
+                            ${item.filial ? `<div class="podium__score">${item.filial}</div>` : ''}
                             <div class="podium__score">${item.score} баллов</div>
                         </div>
                     `;
@@ -420,7 +430,10 @@
                     html += `
                         <div class="row ${classifyScore(item.score)}">
                             <div class="row__rank">${rank}</div>
-                            <div class="row__name" title="${item.fio}">${item.fio}</div>
+                            <div>
+                                <div class="row__name" title="${item.fio}">${shortName(item.fio)}</div>
+                                ${item.filial ? `<div class="row__meta">${item.filial}</div>` : ''}
+                            </div>
                             <div class="row__score">${item.score}</div>
                         </div>
                     `;
@@ -434,10 +447,12 @@
         };
 
         const parseData = (raw = []) => raw
-            .map((item, idx) => ({
-                fio: (item.fio || `Участник ${idx + 1}`).trim(),
-                score: Number.isFinite(Number(item.score)) ? Number(item.score) : 0
-            }))
+            .map((item, idx) => {
+                const fio = (item.fio || `Участник ${idx + 1}`).trim();
+                const filial = (item.filial || item.branch || item.city || item.location || item.place || '').trim();
+                const score = Number.isFinite(Number(item.score)) ? Number(item.score) : 0;
+                return { fio, filial, score };
+            })
             .sort((a, b) => b.score - a.score);
 
         const saveCache = (payload) => {
