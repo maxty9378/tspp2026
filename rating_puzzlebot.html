@@ -163,14 +163,14 @@
 
         /* Золото - 1 место */
         .podium__item--gold .podium__avatar {
-            background: linear-gradient(145deg, #00a380, #00c99a, #00a380);
-            box-shadow: 0 0 20px rgba(0, 163, 128, 0.5), 0 0 40px rgba(0, 201, 154, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+            background: linear-gradient(145deg, #ffd700, #ffb347, #ffd700);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 179, 71, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.4);
             animation: goldGlow 2s ease-in-out infinite alternate;
         }
 
         @keyframes goldGlow {
-            from { box-shadow: 0 0 20px rgba(0, 163, 128, 0.5), 0 0 40px rgba(0, 201, 154, 0.3); }
-            to { box-shadow: 0 0 30px rgba(0, 163, 128, 0.7), 0 0 60px rgba(0, 201, 154, 0.5); }
+            from { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 179, 71, 0.3); }
+            to { box-shadow: 0 0 30px rgba(255, 215, 0, 0.7), 0 0 60px rgba(255, 179, 71, 0.5); }
         }
 
         /* Серебро - 2 место */
@@ -265,7 +265,7 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        .podium__item--gold .podium__score { color: #00a380; background: rgba(0, 163, 128, 0.15); }
+        .podium__item--gold .podium__score { color: var(--gold); background: rgba(255, 204, 102, 0.15); }
         .podium__item--silver .podium__score { color: var(--silver); background: rgba(182, 190, 205, 0.15); }
         .podium__item--bronze .podium__score { color: var(--bronze); background: rgba(197, 154, 106, 0.15); }
 
@@ -289,8 +289,8 @@
 
         .podium__item--gold .podium__pedestal {
             height: 80px;
-            background: linear-gradient(180deg, rgba(0, 163, 128, 0.25) 0%, rgba(0, 201, 154, 0.1) 100%);
-            border: 1px solid rgba(0, 163, 128, 0.3);
+            background: linear-gradient(180deg, rgba(255, 204, 102, 0.25) 0%, rgba(255, 179, 71, 0.1) 100%);
+            border: 1px solid rgba(255, 204, 102, 0.3);
             border-bottom: none;
         }
 
