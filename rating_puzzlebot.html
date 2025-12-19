@@ -153,12 +153,6 @@
             z-index: 2;
         }
 
-        .podium__sticker-small {
-            position: absolute;
-            inset: -8px;
-            z-index: 1;
-        }
-
         /* Золото - 1 место */
         .podium__item--gold .podium__avatar {
             background: linear-gradient(145deg, #ffd700, #ffb347, #ffd700);
@@ -183,48 +177,20 @@
             box-shadow: 0 0 15px rgba(205, 127, 50, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3);
         }
 
-        .podium__crown {
+        .podium__sticker {
             position: absolute;
-            top: -24px;
+            top: -35px;
             left: 50%;
             transform: translateX(-50%);
-            width: 36px;
-            height: 28px;
-            filter: drop-shadow(0 2px 6px rgba(255, 200, 50, 0.6));
-            animation: crownFloat 2.5s ease-in-out infinite;
+            width: 70px;
+            height: 70px;
+            pointer-events: none;
+            z-index: 10;
         }
 
-        .podium__crown svg {
+        .podium__sticker svg {
             width: 100%;
             height: 100%;
-        }
-
-        @keyframes crownFloat {
-            0%, 100% { 
-                transform: translateX(-50%) translateY(0) rotate(-2deg); 
-                filter: drop-shadow(0 2px 6px rgba(255, 200, 50, 0.6));
-            }
-            50% { 
-                transform: translateX(-50%) translateY(-4px) rotate(2deg); 
-                filter: drop-shadow(0 4px 12px rgba(255, 200, 50, 0.8));
-            }
-        }
-
-        .podium__crown-shine {
-            position: absolute;
-            top: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 50px;
-            height: 50px;
-            background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 70%);
-            animation: crownShine 2s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        @keyframes crownShine {
-            0%, 100% { opacity: 0.5; transform: translateX(-50%) scale(1); }
-            50% { opacity: 1; transform: translateX(-50%) scale(1.2); }
         }
 
         .podium__rank {
@@ -462,17 +428,17 @@
             } catch (_) { /* ignore */ }
         };
 
-        let goldStickerAnimation = null;
-        const loadGoldSticker = () => {
+        let winnerStickerAnimation = null;
+        const loadWinnerSticker = () => {
             if (!window.lottie) return;
-            const el = document.getElementById('gold-sticker');
+            const el = document.getElementById('winner-sticker');
             if (!el) return;
             el.innerHTML = '';
-            if (goldStickerAnimation) {
-                goldStickerAnimation.destroy();
-                goldStickerAnimation = null;
+            if (winnerStickerAnimation) {
+                winnerStickerAnimation.destroy();
+                winnerStickerAnimation = null;
             }
-            goldStickerAnimation = window.lottie.loadAnimation({
+            winnerStickerAnimation = window.lottie.loadAnimation({
                 container: el,
                 renderer: 'svg',
                 loop: true,
@@ -541,12 +507,13 @@
 
             if (podium.length) {
                 const placeClass = ['gold', 'silver', 'bronze'];
+                
                 html += '<div class="podium">';
                 podium.forEach((item, idx) => {
                     html += `
                         <div class="podium__item podium__item--${placeClass[idx] || 'bronze'}">
                             <div class="podium__avatar">
-                                ${idx === 0 ? `<div class="podium__crown-shine"></div><span class="podium__crown">${crownSvg}</span>` : ''}
+                                ${idx === 0 ? `<div id="winner-sticker" class="podium__sticker"></div>` : ''}
                                 <span class="podium__rank">${idx + 1}</span>
                             </div>
                             <div class="podium__name" title="${item.fio}">${shortName(item.fio)}</div>
@@ -584,7 +551,7 @@
             html += '</div>';
 
             ui.content.innerHTML = html;
-            loadGoldSticker();
+            loadWinnerSticker();
             if (ui.subtitle) {
                 const ts = new Date();
                 ui.subtitle.textContent = `Обновлено в ${ts.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
