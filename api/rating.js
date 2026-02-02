@@ -67,12 +67,12 @@ module.exports = async (req, res) => {
     const tables = tabRes.data.list || [];
     let tableId = null;
     for (const t of tables) {
-      if (t.title === 'День 1') {
+      if (t.title === 'Баллы') {
         tableId = t.id;
         break;
       }
     }
-    if (!tableId) throw new Error('Table "День 1" not found');
+    if (!tableId) throw new Error('Table "Баллы" not found');
 
     // 3. Получаем данные из таблицы "Сотрудники" для филиалов
     const filialMap = {};
@@ -122,9 +122,9 @@ module.exports = async (req, res) => {
         }
         fio = String(fio).trim();
         const filial = filialMap[fio] || '';
-        const score = parseFloat(r['Оценка'] || r['оценка'] || 0) || 0;
+        const score = parseFloat(r['Сумма баллов'] || r['Оценка'] || r['оценка'] || 0) || 0;
         // Табельный номер
-        const tabNomer = r['Табельный номер (tab_nomer)'] || r['tab_nomer'] || r['Табельный номер'] || '';
+        const tabNomer = r['Tab_n'] || r['Табельный номер (tab_nomer)'] || r['tab_nomer'] || r['Табельный номер'] || '';
         return { fio, filial, score, tabNomer: String(tabNomer).trim() };
       })
       .filter(x => x.fio)
