@@ -2,6 +2,10 @@ const https = require('https');
 
 const NOCODB_URL = process.env.NOCODB_URL || "https://nocodb.puzzlebot.top";
 const API_TOKEN = process.env.NOCODB_API_TOKEN || "avKy8Ov_rNMIRMf-hgneulQKWsrXMhqmdqfc6uR1";
+// Точные ID (без поиска): проект, таблица "Баллы", таблица "Сотрудники"
+const PROJECT_ID = process.env.NOCODB_PROJECT_ID;
+const TABLE_BALLY_ID = process.env.NOCODB_TABLE_BALLY_ID;
+const TABLE_SOTRUDNIKI_ID = process.env.NOCODB_TABLE_SOTRUDNIKI_ID;
 
 function httpsGet(url, headers) {
   return new Promise((resolve, reject) => {
@@ -45,45 +49,51 @@ module.exports = async (req, res) => {
   try {
     const headers = { "xc-token": API_TOKEN };
 
-    // 1. Получаем проекты
-    const projRes = await httpsGet(`${NOCODB_URL}/api/v1/db/meta/projects`, headers);
-    if (!projRes.ok) throw new Error(`Projects: ${projRes.status}`);
-    
-    const projects = projRes.data.list || [];
-    let projectId = null;
-    for (const p of projects) {
-      if ((p.title || '').toLowerCase().includes('телеграм')) {
-        projectId = p.id;
-        break;
+    let projectId = PROJECT_ID;
+    let tableId = TABLE_BALLY_ID;
+    let empTableId = TABLE_SOTRUDNIKI_ID || null;
+
+    // Если ID не заданы — ищем по названиям (fallback)
+    if (!projectId || !tableId) {
+      const projRes = await httpsGet(`${NOCODB_URL}/api/v1/db/meta/projects`, headers);
+      if (!projRes.ok) throw new Error(`Projects: ${projRes.status}`);
+      const projects = projRes.data.list || [];
+      if (!projectId) {
+        for (const p of projects) {
+          if ((p.title || '').toLowerCase().includes('телеграм')) {
+            projectId = p.id;
+            break;
+          }
+        }
+        if (!projectId && projects.length > 0) projectId = projects[0].id;
+        if (!projectId) throw new Error('No project found');
+      }
+
+      const tabRes = await httpsGet(`${NOCODB_URL}/api/v1/db/meta/projects/${projectId}/tables`, headers);
+      if (!tabRes.ok) throw new Error(`Tables: ${tabRes.status}`);
+      const tables = tabRes.data.list || [];
+
+      if (!tableId) {
+        for (const t of tables) {
+          if (t.title === 'Баллы') {
+            tableId = t.id;
+            break;
+          }
+        }
+        if (!tableId) throw new Error('Table "Баллы" not found');
+      }
+      if (!empTableId) {
+        for (const t of tables) {
+          if (t.title === 'Сотрудники') {
+            empTableId = t.id;
+            break;
+          }
+        }
       }
     }
-    if (!projectId && projects.length > 0) projectId = projects[0].id;
-    if (!projectId) throw new Error('No project found');
 
-    // 2. Получаем таблицы
-    const tabRes = await httpsGet(`${NOCODB_URL}/api/v1/db/meta/projects/${projectId}/tables`, headers);
-    if (!tabRes.ok) throw new Error(`Tables: ${tabRes.status}`);
-    
-    const tables = tabRes.data.list || [];
-    let tableId = null;
-    for (const t of tables) {
-      if (t.title === 'Баллы') {
-        tableId = t.id;
-        break;
-      }
-    }
-    if (!tableId) throw new Error('Table "Баллы" not found');
-
-    // 3. Получаем данные из таблицы "Сотрудники" для филиалов
+    // Загружаем филиалы из таблицы "Сотрудники"
     const filialMap = {};
-    let empTableId = null;
-    for (const t of tables) {
-      if (t.title === 'Сотрудники') {
-        empTableId = t.id;
-        break;
-      }
-    }
-    
     if (empTableId) {
       try {
         const empRes = await httpsGet(`${NOCODB_URL}/api/v1/db/data/noco/${projectId}/${empTableId}`, headers);
@@ -122,7 +132,7 @@ module.exports = async (req, res) => {
         }
         fio = String(fio).trim();
         const filial = filialMap[fio] || '';
-        const score = parseFloat(r['Сумма баллов'] || r['Оценка'] || r['оценка'] || 0) || 0;
+        const score = parseFloat(r['Сумма баллов за марафон'] ?? 0) || 0;
         // Табельный номер
         const tabNomer = r['Tab_n'] || r['Табельный номер (tab_nomer)'] || r['tab_nomer'] || r['Табельный номер'] || '';
         return { fio, filial, score, tabNomer: String(tabNomer).trim() };

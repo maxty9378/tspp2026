@@ -272,6 +272,8 @@
             padding: 3px 8px;
             border-radius: 10px;
             background: rgba(255, 255, 255, 0.1);
+            min-width: 2.5em;
+            text-align: center;
         }
 
         .podium__item--gold .podium__score { color: var(--gold); background: rgba(255, 204, 102, 0.15); }
@@ -377,6 +379,7 @@
         .row__score {
             display: inline-flex;
             align-items: center;
+            justify-content: flex-end;
             gap: 6px;
             padding: 6px 10px;
             border-radius: 12px;
@@ -384,6 +387,7 @@
             color: var(--accent);
             font-weight: 700;
             font-size: 14px;
+            min-width: 2.5em;
         }
 
         .row--high .row__score { background: rgba(67, 226, 143, 0.12); color: var(--accent-2); }
@@ -464,50 +468,6 @@
             font-weight: 700;
         }
 
-        /* Отладочный блок */
-        .debug-block {
-            background: rgba(255, 100, 100, 0.15);
-            border: 1px solid rgba(255, 100, 100, 0.3);
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 12px;
-            font-size: 11px;
-            font-family: monospace;
-        }
-
-        .debug-block.success {
-            background: rgba(0, 163, 128, 0.15);
-            border-color: rgba(0, 163, 128, 0.3);
-        }
-
-        .debug-title {
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: var(--text);
-        }
-
-        .debug-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 4px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .debug-row:last-child {
-            border-bottom: none;
-        }
-
-        .debug-label {
-            color: var(--muted);
-        }
-
-        .debug-value {
-            color: var(--text);
-            word-break: break-all;
-            text-align: right;
-            max-width: 60%;
-        }
-
         @media (max-width: 520px) {
             .content { padding: 10px 10px 14px; }
             .podium { gap: 6px; }
@@ -518,22 +478,13 @@
     </style>
 </head>
 <body>
-    <!-- ПРОСТОЙ ТЕСТ - показывает URL сразу при загрузке -->
-    <div id="simple-debug" style="background: #ff6b6b; color: white; padding: 15px; margin: 10px; border-radius: 10px; font-family: monospace; font-size: 14px;">
-        <b>🔴 DEBUG v7</b><br>
-        <span id="debug-url">Загрузка...</span>
-    </div>
-    <script>
-        document.getElementById('debug-url').textContent = 'URL: ' + window.location.href;
-    </script>
-
     <div class="app">
         <header class="hero">
             <div class="hero__meta">
                 <span class="hero__badge">Онлайн - марафон</span>
             </div>
             <h1 class="hero__title">Рейтинг участников</h1>
-            <p class="hero__subtitle" id="subtitle">v7 - Загрузка...</p>
+            <p class="hero__subtitle" id="subtitle">Загрузка...</p>
             <div id="sticker" class="hero__sticker"></div>
         </header>
 
@@ -541,12 +492,10 @@
     </div>
 
     <script>
-        const API_URL = 'https://tspp2026.vercel.app/api/rating';
-        const CACHE_KEY = 'puzzlebot-rating-cache-v2';
-        
-        // NocoDB для загрузки филиалов
-        const NOCODB_URL = 'https://nocodb.puzzlebot.top';
-        const NOCODB_TOKEN = 'avKy8Ov_rNMIRMf-hgneulQKWsrXMhqmdqfc6uR1';
+        const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? (window.location.origin + '/api/rating')
+            : 'https://tspp2026.vercel.app/api/rating';
+        const CACHE_KEY = 'puzzlebot-rating-cache-v3';
 
         const ui = {
             content: document.getElementById('content'),
@@ -642,40 +591,15 @@
 
         const render = (state) => {
             const { data, loading, error, currentUserIndex, currentUserFio } = state;
-            
-            // Отладочный блок - показываем ВСЕГДА первым делом
-            const isDebug = true;
-            let debugHtml = '';
-            
-            if (isDebug) {
-                try {
-                    const tabNumber = getTabNumber();
-                    const isFound = currentUserIndex >= 0;
-                    const hasTabNomer = data && data.length > 0 && data.some(d => d.tabNomer);
-                    debugHtml = `
-                        <div class="debug-block ${isFound ? 'success' : ''}" style="margin: 10px; padding: 12px; background: ${isFound ? 'rgba(0,163,128,0.2)' : 'rgba(255,100,100,0.2)'}; border-radius: 12px; font-size: 12px;">
-                            <div style="font-weight: bold; margin-bottom: 8px;">🔍 DEBUG v6</div>
-                            <div>?tab= <b>${tabNumber || '❌ не передан'}</b></div>
-                            <div>URL: ${window.location.search || '(пусто)'}</div>
-                            <div>Данных: ${data ? data.length : 0}</div>
-                            <div>API tabNomer: ${hasTabNomer ? '✅' : '❌'}</div>
-                            <div>Найден: ${isFound ? '✅ #' + (currentUserIndex + 1) + ' ' + currentUserFio : '❌'}</div>
-                            <div>Loading: ${loading}, Error: ${error || 'нет'}</div>
-                        </div>
-                    `;
-                } catch (e) {
-                    debugHtml = `<div style="margin: 10px; padding: 12px; background: red; color: white; border-radius: 8px;">DEBUG ERROR: ${e.message}</div>`;
-                }
-            }
 
             if (loading && !data.length) {
-                ui.content.innerHTML = debugHtml + skeletonPodium() + skeletonList(6);
+                ui.content.innerHTML = skeletonPodium() + skeletonList(6);
                 if (ui.subtitle) ui.subtitle.textContent = 'Загружаем...';
                 return;
             }
 
             if (error && !data.length) {
-                ui.content.innerHTML = debugHtml + `<div class="state">Не удалось загрузить рейтинг. Попробуйте обновить позже.</div>`;
+                ui.content.innerHTML = `<div class="state">Не удалось загрузить рейтинг. Попробуйте обновить позже.</div>`;
                 if (ui.subtitle) ui.subtitle.textContent = 'Ошибка загрузки';
                 return;
             }
@@ -683,7 +607,7 @@
             const podium = data.slice(0, 3);
             const rest = data.slice(3);
 
-            let html = debugHtml;
+            let html = '';
 
             // Блок "Ваше место" если пользователь найден
             if (currentUserIndex >= 0) {
@@ -716,7 +640,7 @@
                             </div>
                             <div class="podium__name" title="${item.fio}">${shortName(item.fio)}${isCurrent ? ' (вы)' : ''}</div>
                             ${item.filial && item.filial.trim() ? `<div class="podium__meta">${item.filial}</div>` : ''}
-                            <div class="podium__score">${item.score} ⭐</div>
+                            <div class="podium__score">${Number(item.score) ?? 0} ⭐</div>
                             <div class="podium__pedestal"></div>
                         </div>
                     `;
@@ -742,7 +666,7 @@
                                 <div class="row__name" title="${item.fio}">${shortName(item.fio)}${isCurrent ? ' (вы)' : ''}</div>
                                 ${item.filial && item.filial.trim() ? `<div class="row__meta">${item.filial}</div>` : ''}
                             </div>
-                            <div class="row__score">${item.score}</div>
+                            <div class="row__score">${Number(item.score) ?? 0}</div>
                         </div>
                     `;
                 });
@@ -766,8 +690,10 @@
                     const key = Object.keys(item).find(k => /filial|филиал/i.test(k));
                     if (key) filial = String(item[key] || '').trim();
                 }
-                const score = Number.isFinite(Number(item.score)) ? Number(item.score) : 0;
-                return { fio, filial: filial || '', score };
+                let score = Number(item.score);
+                if (!Number.isFinite(score)) score = Number(item['Сумма баллов за марафон'] ?? item['Сумма баллов']) || 0;
+                const tabNomer = String(item.tabNomer || '').trim();
+                return { fio, filial: filial || '', score, tabNomer };
             })
             .sort((a, b) => b.score - a.score);
 
@@ -790,11 +716,7 @@
         const getTabNumber = () => {
             const urlParams = new URLSearchParams(window.location.search);
             const tab = urlParams.get('tab') || urlParams.get('tab_nomer') || urlParams.get('tabnomer');
-            if (tab) {
-                console.log('Таб. номер из URL:', tab);
-                return String(tab).trim();
-            }
-            return null;
+            return tab ? String(tab).trim() : null;
         };
 
         // Получение Telegram ID текущего пользователя (множество источников)
@@ -803,41 +725,23 @@
             
             // 1. Из Telegram WebApp API
             const tg = window.Telegram?.WebApp;
-            if (tg?.initDataUnsafe?.user?.id) {
-                tgId = tg.initDataUnsafe.user.id;
-                console.log('TG ID из WebApp API:', tgId);
-                return String(tgId);
-            }
+            if (tg?.initDataUnsafe?.user?.id) return String(tg.initDataUnsafe.user.id);
             
-            // 2. Из URL-параметров (?tg_id=... или ?user_id=...)
             const urlParams = new URLSearchParams(window.location.search);
             tgId = urlParams.get('tg_id') || urlParams.get('user_id') || urlParams.get('tg_user_id');
-            if (tgId) {
-                console.log('TG ID из URL параметров:', tgId);
-                return String(tgId);
-            }
+            if (tgId) return String(tgId);
             
-            // 3. Из hash-параметров (#tg_id=...)
             if (window.location.hash) {
                 const hashParams = new URLSearchParams(window.location.hash.substring(1));
                 tgId = hashParams.get('tg_id') || hashParams.get('user_id');
-                if (tgId) {
-                    console.log('TG ID из hash:', tgId);
-                    return String(tgId);
-                }
+                if (tgId) return String(tgId);
             }
             
-            // 4. Из startParam (если бот открыл Mini App с параметром)
             if (tg?.initDataUnsafe?.start_param) {
                 const startParam = tg.initDataUnsafe.start_param;
-                // Если startParam содержит только цифры — это tg_id
-                if (/^\d+$/.test(startParam)) {
-                    console.log('TG ID из startParam:', startParam);
-                    return startParam;
-                }
+                if (/^\d+$/.test(startParam)) return startParam;
             }
             
-            console.log('TG ID не найден');
             return null;
         };
         
@@ -849,23 +753,13 @@
             // 1. Из URL-параметров
             const urlParams = new URLSearchParams(window.location.search);
             fullname = urlParams.get('fullname') || urlParams.get('full_name') || urlParams.get('fio');
-            if (fullname) {
-                console.log('ФИО из URL:', fullname);
-                return decodeURIComponent(fullname);
-            }
+            if (fullname) return decodeURIComponent(fullname);
             
-            // 2. Из Telegram WebApp
             if (tg?.initDataUnsafe?.user) {
                 const user = tg.initDataUnsafe.user;
-                if (user.last_name && user.first_name) {
-                    fullname = user.last_name + ' ' + user.first_name;
-                } else if (user.first_name) {
-                    fullname = user.first_name;
-                }
-                if (fullname) {
-                    console.log('ФИО из WebApp:', fullname);
-                    return fullname;
-                }
+                if (user.last_name && user.first_name) fullname = user.last_name + ' ' + user.first_name;
+                else if (user.first_name) fullname = user.first_name;
+                if (fullname) return fullname;
             }
             
             return null;
@@ -879,106 +773,16 @@
             error: () => window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred?.('error')
         };
 
-        // Загрузка филиалов и регистрации с NocoDB
-        const loadExtraData = async () => {
-            try {
-                const headers = { 'xc-token': NOCODB_TOKEN };
-                
-                // 1. Получаем проекты
-                const projRes = await fetch(NOCODB_URL + '/api/v1/db/meta/projects', { headers });
-                const projects = (await projRes.json()).list || [];
-                const projectId = projects.find(p => p.title?.toLowerCase().includes('телеграм'))?.id || projects[0]?.id;
-                if (!projectId) return { filialMap: {}, tgUserMap: {} };
-                
-                // 2. Получаем таблицы
-                const tabRes = await fetch(NOCODB_URL + '/api/v1/db/meta/projects/' + projectId + '/tables', { headers });
-                const tables = (await tabRes.json()).list || [];
-                
-                const filialMap = {};
-                const tgUserMap = {};
-                const tabUserMap = {};
-                
-                // 3. Данные из таблицы "Сотрудники" для филиалов
-                const empTableId = tables.find(t => t.title === 'Сотрудники')?.id;
-                if (empTableId) {
-                    const empRes = await fetch(NOCODB_URL + '/api/v1/db/data/noco/' + projectId + '/' + empTableId, { headers });
-                    const employees = (await empRes.json()).list || [];
-                    employees.forEach(emp => {
-                        const fio = emp['ФИО сотрудника'] || emp['ФИО'] || '';
-                        const filial = emp['Филиал сотрудника'] || emp['Филиал'] || '';
-                        if (fio && filial) {
-                            filialMap[String(fio).trim()] = String(filial).trim();
-                        }
-                    });
-                }
-                
-                // 4. Данные из таблицы "Регистрация участника" для связи Telegram ID → табельный номер
-                const regTableId = tables.find(t => 
-                    t.title === 'Регистрация участника' || 
-                    t.title?.toLowerCase().includes('регистрац')
-                )?.id;
-                
-                if (regTableId) {
-                    const regRes = await fetch(NOCODB_URL + '/api/v1/db/data/noco/' + projectId + '/' + regTableId, { headers });
-                    const registrations = (await regRes.json()).list || [];
-                    registrations.forEach(reg => {
-                        const tgId = reg['ID TG USER'] || reg['id_tg_user'] || reg['tg_id'] || '';
-                        const tabNum = reg['Табельный номер'] || reg['tab_nomer'] || reg['Tab_nomer'] || '';
-                        const fio = reg['ФИО'] || reg['ФИО сотрудника'] || reg['fio'] || '';
-                        
-                        // Карта по Telegram ID
-                        if (tgId) {
-                            tgUserMap[String(tgId).trim()] = {
-                                tabNum: String(tabNum).trim(),
-                                fio: String(fio).trim()
-                            };
-                        }
-                        
-                        // Карта по табельному номеру
-                        if (tabNum) {
-                            tabUserMap[String(tabNum).trim()] = String(fio).trim();
-                        }
-                    });
-                    console.log('Загружено регистраций:', Object.keys(tgUserMap).length, 'табельных:', Object.keys(tabUserMap).length);
-                }
-                
-                console.log('Загружено филиалов:', Object.keys(filialMap).length);
-                return { filialMap, tgUserMap, tabUserMap };
-            } catch (e) {
-                console.warn('Не удалось загрузить данные:', e);
-                return { filialMap: {}, tgUserMap: {}, tabUserMap: {} };
-            }
-        };
-
         const fetchRating = async (withSkeleton = false) => {
             if (withSkeleton) { state.loading = true; state.error = ''; render(state); }
             try {
-                // Загружаем данные рейтинга и дополнительные данные параллельно
-                const needExtraData = !Object.keys(state.filialMap).length;
-                const [ratingRes, extraData] = await Promise.all([
-                    fetch(API_URL, { cache: 'no-store' }).then(r => r.json()),
-                    needExtraData ? loadExtraData() : Promise.resolve({ filialMap: state.filialMap, tgUserMap: state.tgUserMap, tabUserMap: state.tabUserMap })
-                ]);
-                
+                const ratingRes = await fetch(API_URL, { cache: 'no-store' }).then(r => r.json());
                 if (!ratingRes.success) throw new Error(ratingRes.error || 'Ошибка загрузки');
                 
-                state.filialMap = extraData.filialMap;
-                state.tgUserMap = extraData.tgUserMap;
-                state.tabUserMap = extraData.tabUserMap || {};
-                
-                // Добавляем филиалы к данным
-                const dataWithFilials = (ratingRes.data || []).map(item => ({
-                    ...item,
-                    filial: state.filialMap[String(item.fio || '').trim()] || item.filial || ''
-                }));
-                
-                state.data = parseData(dataWithFilials);
-                
-                // Поиск текущего пользователя
+                state.data = parseData(ratingRes.data || []);
                 state.currentUserIndex = -1;
                 state.currentUserFio = '';
                 
-                // Способ 0: По табельному номеру из URL (?tab=...) — ищем прямо в данных рейтинга
                 const tabNumber = getTabNumber();
                 if (tabNumber) {
                     state.currentUserIndex = state.data.findIndex(d => 
@@ -987,10 +791,8 @@
                     if (state.currentUserIndex >= 0) {
                         state.currentUserFio = state.data[state.currentUserIndex].fio;
                     }
-                    console.log('Поиск по таб. номеру:', { tabNumber, index: state.currentUserIndex, fio: state.currentUserFio });
                 }
                 
-                // Способ 1: По Telegram ID из таблицы регистрации
                 const tgUserId = getTelegramUserId();
                 if (tgUserId && state.tgUserMap[tgUserId]) {
                     const userData = state.tgUserMap[tgUserId];
@@ -1006,10 +808,8 @@
                             state.currentUserFio = state.data[state.currentUserIndex].fio;
                         }
                     }
-                    console.log('Поиск по TG ID:', { tgUserId, userData, index: state.currentUserIndex });
                 }
                 
-                // Способ 2: По ФИО напрямую (из URL или Telegram)
                 if (state.currentUserIndex < 0) {
                     const fullname = getUserFullName();
                     if (fullname) {
@@ -1023,30 +823,19 @@
                         if (state.currentUserIndex >= 0) {
                             state.currentUserFio = state.data[state.currentUserIndex].fio;
                         }
-                        console.log('Поиск по ФИО:', { fullname, index: state.currentUserIndex });
                     }
                 }
-                
-                console.log('Итоговый результат:', { 
-                    tgUserId, 
-                    currentUserIndex: state.currentUserIndex, 
-                    currentUserFio: state.currentUserFio 
-                });
                 
                 state.loading = false;
                 state.error = '';
                 state.updatedAt = Date.now();
                 saveCache({ data: state.data, updatedAt: state.updatedAt });
                 render(state);
-                
-                // Haptic feedback при успешной загрузке
                 haptic.success();
             } catch (err) {
                 state.loading = false;
                 state.error = err.message || 'Ошибка';
                 render(state);
-                
-                // Haptic feedback при ошибке
                 haptic.error();
             }
         };
@@ -1056,11 +845,9 @@
             loadSticker();
             let cached = readCache();
             
-            // Очистка старого кэша без филиалов
             if (cached?.data?.length) {
                 const hasFilial = cached.data.some(item => item.filial);
                 if (!hasFilial) {
-                    console.log('Очистка кэша без филиалов');
                     localStorage.removeItem(CACHE_KEY);
                     cached = null;
                 }

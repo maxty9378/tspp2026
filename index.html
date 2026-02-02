@@ -76,32 +76,6 @@
             color: var(--tg-hint);
         }
         
-        .debug-block {
-            background: rgba(0, 163, 128, 0.15);
-            border: 1px solid rgba(0, 163, 128, 0.3);
-            border-radius: 12px;
-            padding: 12px;
-            margin: 16px 0;
-            text-align: center;
-            font-size: 12px;
-        }
-        
-        .debug-block.error {
-            background: rgba(255, 59, 48, 0.15);
-            border-color: rgba(255, 59, 48, 0.3);
-        }
-        
-        .debug-label {
-            color: var(--tg-hint);
-            margin-bottom: 4px;
-        }
-        
-        .debug-value {
-            font-size: 16px;
-            font-weight: 700;
-            color: #00a380;
-        }
-        
         .my-place {
             background: rgba(0, 163, 128, 0.15);
             border: 1px solid rgba(0, 163, 128, 0.3);
@@ -345,7 +319,6 @@
             <div class="subtitle">День 1 • Марафон</div>
         </div>
         
-        <div id="debug"></div>
         <div id="content">
             <div class="loading">
                 <div class="spinner"></div>
@@ -483,46 +456,6 @@ function getTabNomer() {
     return tabN ? String(tabN).trim() : null;
 }
 
-// === Показать блок отладки ===
-function showDebug() {
-    const fullname = getFullName();
-    const tabN = getTabNomer();
-    const debugEl = document.getElementById('debug');
-    
-    let html = '';
-    
-    if (fullname || tabN) {
-        html = `<div class="debug-block">`;
-        if (fullname) {
-            html += `<div class="debug-label">✅ ФИО:</div>
-                     <div class="debug-value">${fullname}</div>`;
-        }
-        if (tabN) {
-            html += `<div class="debug-label" style="margin-top: 8px;">✅ Табельный номер:</div>
-                     <div class="debug-value">${tabN}</div>`;
-        }
-        // Показываем источник данных
-        let source = 'неизвестно';
-        if (tg?.initDataUnsafe?.user) source = 'Telegram User';
-        else if (tg?.initDataUnsafe?.fullname) source = 'Telegram initDataUnsafe';
-        else if (tg?.startParam) source = 'Telegram startParam';
-        else if (window.location.search) source = 'URL параметры';
-        html += `<div style="font-size: 10px; color: var(--tg-hint); margin-top: 8px;">Источник: ${source}</div>`;
-        html += `</div>`;
-    } else {
-        html = `<div class="debug-block error">
-            <div class="debug-label">❌ Данные пользователя не найдены</div>
-            <div style="font-size: 10px; color: var(--tg-hint); margin-top: 8px; word-break: break-all;">
-                URL: ${window.location.href}<br>
-                Telegram: ${tg ? 'подключен' : 'не подключен'}<br>
-                ${tg?.initData ? 'initData: есть' : 'initData: нет'}
-            </div>
-        </div>`;
-    }
-    
-    debugEl.innerHTML = html;
-}
-
 // === Загрузка стикера ===
 async function loadSticker() {
     const container = document.getElementById('sticker');
@@ -539,10 +472,9 @@ async function loadSticker() {
             tgsPlayer.style.height = '80px';
             container.innerHTML = '';
             container.appendChild(tgsPlayer);
-            console.log('TGS Player загружен');
             return;
         } catch (e) {
-            console.warn('Ошибка TGS Player:', e);
+            // TGS Player недоступен — используем fallback
         }
     }
     
@@ -727,7 +659,6 @@ async function loadData() {
 }
 
 // === Инициализация ===
-showDebug();
 loadSticker();
 loadData();
 
